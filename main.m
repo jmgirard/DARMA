@@ -354,7 +354,7 @@ function figure_main_CloseReq(hObject,~)
     handles = guidata(hObject);
     % Pause playback and rating
     handles.wmp.controls.pause();
-    if isfield(handles,'timer'), stop(handles.timer); end
+    if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
     set(handles.toggle_playpause,'String','Resume','Value',0);
     handles.recording = 0;
     guidata(handles.figure_main,handles);
@@ -363,7 +363,7 @@ function figure_main_CloseReq(hObject,~)
         'DARMA','Yes','No','No');
     switch choice
         case 'Yes'
-            if isvalid(timerfind), delete(timerfind); end
+            delete(handles.timer);
             delete(gcf);
         case 'No'
             return;
@@ -445,7 +445,7 @@ end
 function menu_about_Callback(~,~)
     % Display information menu_about CARMA
     line1 = 'Dual Axis Rating and Media Annotation';
-    line2 = 'Version 1.00 <11-03-2014>';
+    line2 = 'Version 1.01 <11-03-2014>';
     line3 = 'Manual: http://darma.codeplex.com/documentation';
     line4 = 'Support: http://darma.codeplex.com/discussion';
     line5 = 'License: http://darma.codeplex.com/license';

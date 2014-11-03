@@ -207,38 +207,45 @@ end
 function button_addseries_Callback(hObject,~)
     handles = guidata(hObject);
     % Prompt user for import file.
-    [filename,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','CARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations');
-    if filename==0, return; end
-    [~,~,data] = xlsread(fullfile(pathname,filename));
-    if cell2mat(data(3,2))~=handles.mag
-        msgbox('Annotation file must have the same magnitude as the other annotation files.','Error','error');
-        return;
+    [filenames,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','DARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations','MultiSelect','on');
+    if ~iscell(filenames)
+        if filenames==0, return; end
+        filenames = {filenames};
     end
-    % Check that the import file matches the multimedia file
-    if size(handles.AllRatingsX,1) ~= size(data(6:end,:),1)
-        msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
-        return;
-    else
-        % Append the new file to the stored data
-        handles.AllRatingsX = [handles.AllRatingsX,cell2mat(data(6:end,2))];
-        handles.AllRatingsY = [handles.AllRatingsY,cell2mat(data(6:end,3))];
-        [~,fn,~] = fileparts(filename);
-        handles.AllFilenames = [handles.AllFilenames;fn];
-        % Update mean series
-        handles.MeanRatingsX = mean(handles.AllRatingsX,2);
-        handles.MeanRatingsY = mean(handles.AllRatingsY,2);
-        guidata(hObject,handles);
-        update_plots(handles);
-        % Update list box
-        rows = {'<html><u>Annotation Files'};
-        for i = 1:size(handles.AllRatingsX,2)
-            colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(handles.CS(colorindex,:)),i,handles.AllFilenames{i})];
+    for f = 1:length(filenames)
+        filename = filenames{f};
+        [~,~,data] = xlsread(fullfile(pathname,filename));
+        if cell2mat(data(3,2))~=handles.mag
+            msgbox('Annotation file must have the same magnitude as the other annotation files.','Error','error');
+            return;
         end
-        set(handles.listbox,'String',rows);
-        % Update reliability box
-        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-        set(handles.reliability,'Data',box);
+        % Check that the import file matches the multimedia file
+        if size(handles.AllRatingsX,1) ~= size(data(6:end,:),1)
+            msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
+            return;
+        else
+            % Append the new file to the stored data
+            handles.AllRatingsX = [handles.AllRatingsX,cell2mat(data(6:end,2))];
+            handles.AllRatingsY = [handles.AllRatingsY,cell2mat(data(6:end,3))];
+            [~,fn,~] = fileparts(filename);
+            handles.AllFilenames = [handles.AllFilenames;fn];
+            % Update mean series
+            handles.MeanRatingsX = mean(handles.AllRatingsX,2);
+            handles.MeanRatingsY = mean(handles.AllRatingsY,2);
+            guidata(hObject,handles);
+            update_plots(handles);
+            % Update list box
+            rows = {'<html><u>Annotation Files'};
+            for i = 1:size(handles.AllRatingsX,2)
+                colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+                rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(handles.CS(colorindex,:)),i,handles.AllFilenames{i})];
+            end
+            set(handles.listbox,'String',rows);
+            % Update reliability box
+            box = reliability(handles.AllRatingsX,handles.AllRatingsY);
+            set(handles.reliability,'Data',box);
+            guidata(handles.figure_annotations,handles);
+        end
     end
     set(handles.toggle_meanplot,'Enable','on');
     guidata(handles.figure_annotations,handles);
@@ -466,7 +473,8 @@ end
 % =========================================================
 
 function figure_annotations_CloseRequest(hObject,~)
+    handles = guidata(hObject);
     % Remove timer as part of cleanup
-    if isvalid(timerfind), delete(timerfind); end
+    delete(handles.timer2);
     delete(gcf);
 end
