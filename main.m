@@ -354,7 +354,7 @@ function figure_main_CloseReq(hObject,~)
     handles = guidata(hObject);
     % Pause playback and rating
     handles.wmp.controls.pause();
-    if isvalid(handles.timer), stop(handles.timer); end
+    if isfield(handles,'timer'), stop(handles.timer); end
     set(handles.toggle_playpause,'String','Resume','Value',0);
     handles.recording = 0;
     guidata(handles.figure_main,handles);
