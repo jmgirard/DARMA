@@ -36,13 +36,13 @@ function status = annotations(varargin)
         'TickLength',[0.05 0], ...
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .24 .86 .16], ...
-        'ButtonDownFcn',@axis_click_Callback);
+        'ButtonDownFcn',{@axis_click_Callback,'X'});
     handles.axis_Y = axes('Units','Normalized', ...
         'Parent',handles.figure_annotations, ...
         'TickLength',[0.05 0], ...
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .04 .86 .16], ...
-        'ButtonDownFcn',@axis_click_Callback);
+        'ButtonDownFcn',{@axis_click_Callback,'Y'});
     handles.listbox = uicontrol('Style','listbox', ...
         'Parent',handles.figure_annotations, ...
         'Units','normalized', ...
@@ -104,31 +104,32 @@ function status = annotations(varargin)
         'Callback',@toggle_playpause_Callback);
     % Check for and find Window Media Player (WMP) ActiveX Controller
     axctl = actxcontrollist;
-    index = strcmp(axctl(:,1),'Windows Media Player');
-    if sum(index)==0, errordlg('Please install Windows Media Player'); quit force; end
+    index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
+    if sum(index)==0,errordlg('Please install VideoLAN VLC Media Player'); quit force; end
     % Invoke and configure WMP ActiveX Controller
-    handles.wmp2 = actxcontrol(axctl{index,2},getpixelposition(handles.axis_guide),handles.figure_annotations);
-    handles.wmp2.stretchToFit = true;
-    handles.wmp2.uiMode = 'none';
-    set(handles.wmp2.settings,'autoStart',0);
+    handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_annotations);
+    pause(2);
+    handles.vlc.AutoPlay = 0;
+    handles.vlc.Toolbar = 0;
+    handles.vlc.FullscreenEnabled = 0;
     % Read data passed to function
     handles.Ratings = varargin{find(strcmp(varargin,'Ratings'))+1};
     handles.Seconds = handles.Ratings(:,1);
     handles.AllRatingsX = handles.Ratings(:,2);
     handles.AllRatingsY = handles.Ratings(:,3);
-    handles.URL = varargin{find(strcmp(varargin,'URL'))+1};
+    handles.MRL = varargin{find(strcmp(varargin,'MRL'))+1};
     handles.dur = varargin{find(strcmp(varargin,'Duration'))+1};
     handles.mag = varargin{find(strcmp(varargin,'Magnitude'))+1};
     filename = varargin{find(strcmp(varargin,'Filename'))+1};
     [~,handles.filename,~] = fileparts(filename);
     handles.AllFilenames = {handles.filename};
-    handles.wmp2.URL = handles.URL;
-    handles.wmp2.controls.play();
-    while ~strcmp(handles.wmp2.playState,'wmppsPlaying')
+    handles.vlc.playlist.add(handles.MRL);
+    handles.vlc.playlist.play();
+    while handles.vlc.input.state ~= 3
         pause(0.001);
     end
-    handles.wmp2.controls.pause();
-    handles.wmp2.controls.currentPosition = 0;
+    handles.vlc.playlist.togglePause();
+    handles.vlc.input.time = 0;
     % Populate list box
     set(handles.listbox,'String',{'<html><u>Annotation Files';sprintf('<html><font color="%s">[01]</font> %s',rgbconv([0 0.4470 0.7410]),handles.filename)});
     % Populate reliability box
@@ -323,14 +324,14 @@ end
 function toggle_playpause_Callback(hObject,~)
     handles = guidata(hObject);
     if get(hObject,'Value')==get(hObject,'Max')
-        % Send play() command to WMP and start timer
-        handles.wmp2.controls.play();
+        % Send play() command to VLC and start timer
+        handles.vlc.playlist.play();
         start(handles.timer2);
         set(hObject,'String','Pause');
         set(handles.menu_export,'Enable','off');
     else
-        % Send pause() command to WMP and stop timer
-        handles.wmp2.controls.pause();
+        % Send pause() command to VLC and stop timer
+        handles.vlc.playlist.togglePause();
         stop(handles.timer2);
         set(hObject,'String','Resume','Value',0);
         set(handles.menu_export,'Enable','on');
@@ -342,9 +343,9 @@ end
 
 function timer2_Callback(~,~,handles)
     handles = guidata(handles.figure_annotations);
-    if strcmp(handles.wmp2.playState,'wmppsPlaying')
+    if handles.vlc.input.state == 3
         % While playing, update annotations plot
-        ts = handles.wmp2.controls.currentPosition;
+        ts = handles.vlc.input.time/1000;
         update_plots(handles);
         axes(handles.axis_X);
         hold on;
@@ -355,37 +356,38 @@ function timer2_Callback(~,~,handles)
         plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
         hold off;
         drawnow();
-    elseif strcmp(handles.wmp2.playState,'wmppsStopped')
-        % When done, send stop() command to WMP
+    elseif handles.vlc.input.state == 6 || handles.vlc.input.state == 5
+        % When done, send stop() command to VLC
         stop(handles.timer2);
-        handles.wmp2.controls.stop();
         update_plots(handles);
         set(handles.toggle_playpause,'String','Play','Value',0);
         set(handles.menu_export,'Enable','on');
+        handles.vlc.input.time = 0;
     else
-        % When transitioning, wait and return
+        % Otherwise, wait
         return;
     end
 end
 
 % ===============================================================================
 
-function axis_click_Callback(hObject,~)
-    % Jump WMP playback to clicked position
+function axis_click_Callback(hObject,~,axis)
+    % Jump VLC playback to clicked position
     handles = guidata(hObject);
-    coord = get(hObject,'CurrentPoint');
-    duration = handles.wmp2.currentMedia.duration;
-    if coord(1,1) > duration-1
-        handles.wmp2.controls.currentPosition = duration-1;
-    elseif coord(1,1) > 0
-        handles.wmp2.controls.currentPosition = coord(1,1);
-    else
-        handles.wmp2.controls.currentPosition = 0;
+    if strcmp(axis,'X')
+        coord = get(handles.axis_X,'CurrentPoint');
+    elseif strcmp(axis,'Y')
+        coord = get(handles.axis_Y,'CurrentPoint');
     end
-    handles.wmp2.controls.step(1);
+    duration = handles.vlc.input.length;
+    if coord(1,1) > 0 && coord(1,1)*1000 < duration
+        handles.vlc.input.time = coord(1,1)*1000;
+    else
+        handles.vlc.input.time = 0;
+    end
     pause(.05);
     % While playing, update annotations plot
-    ts = handles.wmp2.controls.currentPosition;
+    ts = handles.vlc.input.time/1000;
     update_plots(handles);
     axes(handles.axis_X);
     hold on;
@@ -396,13 +398,6 @@ function axis_click_Callback(hObject,~)
     plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
     hold off;
     drawnow();
-    %set to pause if it was playing
-    if get(handles.toggle_playpause,'Value')==get(handles.toggle_playpause,'Max')
-        stop(handles.timer2);
-        set(handles.toggle_playpause, ...
-            'Value',get(handles.toggle_playpause,'Min'), ...
-            'String','Resume');
-    end
 end
 
 % ===============================================================================
@@ -412,37 +407,37 @@ function update_plots(handles)
     if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         % Configure first (X) axis for normal plots
         axes(handles.axis_X); cla;
-        plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2);
+        plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'X'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(handles.dur)+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel('Communion (X)','FontSize',10);
-        set(handles.axis_X,'ButtonDownFcn',@axis_click_Callback);
+        set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         % Configure second (Y) axis for normal plots
         axes(handles.axis_Y); cla;
-        plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2);
+        plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(handles.dur)+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel('Agency (Y)','FontSize',10);
-        set(handles.axis_Y,'ButtonDownFcn',@axis_click_Callback);
+        set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         handles.CS = get(gca,'ColorOrder');
     elseif get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Max')
         % Plot each series of ratings in blue and the mean series in red
         axes(handles.axis_X); cla;
-        set(handles.axis_X,'ButtonDownFcn',@axis_click_Callback);
+        set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         hold on;
-        plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'Color',[.8 .8 .8]);
-        plot(handles.Seconds,handles.MeanRatingsX,'-','LineWidth',2,'Color',[1 0 0]);
+        plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'X'});
+        plot(handles.Seconds,handles.MeanRatingsX,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'X'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(handles.dur)+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel('Communion (X)','FontSize',10);
         axes(handles.axis_Y); cla;
-        set(handles.axis_Y,'ButtonDownFcn',@axis_click_Callback);
+        set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         hold on;
-        plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'Color',[.8 .8 .8]);
-        plot(handles.Seconds,handles.MeanRatingsY,'-','LineWidth',2,'Color',[1 0 0]);
+        plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'Y'});
+        plot(handles.Seconds,handles.MeanRatingsY,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'Y'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(handles.dur)+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
@@ -463,9 +458,9 @@ function figure_annotations_SizeChanged(hObject,~)
             setpixelposition(handles.figure_annotations,[pos(1) pos(2) 1024 600]);
             movegui(handles.figure_annotations,'center');
         end
-        % Update the size and position of the WMP controller
-        if isfield(handles,'wmp2')
-            move(handles.wmp2,getpixelposition(handles.axis_guide));
+        % Update the size and position of the VLC controller
+        if isfield(handles,'vlc')
+            move(handles.vlc,getpixelposition(handles.axis_guide));
         end
     end
 end

@@ -75,10 +75,20 @@ function main
         'NextPlot','add', ...
         'Box','on','XTick',[],'YTick',[],'Layer','top');
     axis square;
-    % Check for and find Window Media Player (WMP) ActiveX Controller
+    % Check for and find VideoLAN VLC Player ActiveX Controller
     axctl = actxcontrollist;
-    index = strcmp(axctl(:,1),'Windows Media Player');
-    if sum(index)==0, errordlg('Please install Windows Media Player'); quit force; end
+    index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
+    if sum(index)==0
+        choice = questdlg('DARMA requires the free, open source VLC media player. Open download page?',...
+            'DARMA','Yes','No','Yes');
+        switch choice
+            case 'Yes'
+                web('http://www.videolan.org/','-browser');
+        end
+        delete(handles.figure_main);
+        return;
+    end
+    % Configure default settings
     handles.mag = 1000;
     handles.sps = 2;
     handles.label0 = 'Friendly';
@@ -89,11 +99,12 @@ function main
     handles.label5 = 'Introverted';
     handles.label6 = 'Submissive';
     handles.label7 = 'Agreeable';
-    % Invoke and configure WMP ActiveX Controller
-    handles.wmp = actxcontrol(axctl{index,2},getpixelposition(handles.axis_guide),handles.figure_main);
-    handles.wmp.stretchToFit = true;
-    handles.wmp.uiMode = 'none';
-    set(handles.wmp.settings,'autoStart',0);
+    % Invoke and configure VLC ActiveX Controller
+    handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_main);
+    pause(2);
+    handles.vlc.AutoPlay = 0;
+    handles.vlc.Toolbar = 0;
+    handles.vlc.FullscreenEnabled = 0;
     try
         handles.joy = vrjoystick(1);
     catch
@@ -122,7 +133,7 @@ function figure_main_KeyPress(hObject,eventdata)
     if strcmp(get(handles.toggle_playpause,'enable'),'inactive'), return; end
     % Pause playback if the pressed key is spacebar
     if strcmp(eventdata.Key,'space') && get(handles.toggle_playpause,'value')
-        handles.wmp.controls.pause();
+        handles.vlc.playlist.togglePause();
         stop(handles.timer);
         set(handles.toggle_playpause,'String','Resume','Value',0);
     else
@@ -152,12 +163,11 @@ function toggle_playpause_Callback(hObject,~)
         set(hObject,'Enable','On','String','Pause');
         handles.recording = 1;
         guidata(hObject,handles);
-        % Send play() command to WMP and wait for it to start playing
-        handles.wmp.controls.play();
-        guidata(hObject,handles);
+        % Send play() command to VLC and wait for it to start playing
+        handles.vlc.playlist.play();
     else
-        % If toggle button is set to pause, send pause() command to WMP
-        handles.wmp.controls.pause();
+        % If toggle button is set to pause, send pause() command to VLC
+        handles.vlc.playlist.togglePause();
         stop(handles.timer);
         handles.recording = 0;
         set(hObject,'String','Resume','Value',0);
@@ -170,7 +180,7 @@ end
 function program_reset(handles)
     handles = guidata(handles.figure_main);
     handles.recording = 0;
-    create_axis(handles);
+    handles.vlc.playlist.items.clear();
     % Update GUI elements to starting configuration
     set(handles.text_report,'String','Open File');
     set(handles.text_filename,'String','');
@@ -181,6 +191,7 @@ function program_reset(handles)
     set(handles.menu_settings,'Enable','on');
     set(handles.menu_about,'Enable','on');
     guidata(handles.figure_main,handles);
+    create_axis(handles);
 end
 
 % =========================================================
@@ -203,7 +214,7 @@ function timer_Callback(~,~,handles)
         return;
     end
     % While playing
-    if strcmp(handles.wmp.playState,'wmppsPlaying')
+    if handles.vlc.input.state == 3
         try
             % Read status of the joystick
             [a,b,~] = read(handles.joy);
@@ -213,20 +224,20 @@ function timer_Callback(~,~,handles)
             guidata(handles.figure_main,handles);
             return;
         end
-        t = handles.wmp.controls.currentPosition;
+        t = handles.vlc.input.time / 1000;
         x = a(1); y = a(2)*-1;
         create_axis(handles);
         if b(1)==0, color = 'r'; else color = 'g'; end
         plot(handles.axis_circle,x,y,'ko','LineWidth',2,'MarkerSize',15,'MarkerFace',color);
         handles.rating = [handles.rating; t,x*handles.mag,y*handles.mag,b(1)];
-        set(handles.text_report,'string',datestr(handles.wmp.controls.currentPosition/24/3600,'HH:MM:SS'));
+        set(handles.text_report,'string',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
         drawnow();
         guidata(handles.figure_main,handles);
     % After playing
-    elseif strcmp(handles.wmp.playState,'wmppsStopped')
+    elseif handles.vlc.input.state == 5 || handles.vlc.input.state == 6
         stop(handles.timer);
-        handles.wmp.controls.stop();
         handles.recording = 0;
+        handles.vlc.playlist.stop();
         set(handles.toggle_playpause,'Value',0);
         create_axis(handles);
         set(handles.text_report,'string','Processing...');
@@ -242,7 +253,7 @@ function timer_Callback(~,~,handles)
             mean_ratings = [mean_ratings;s_end,mean(bin(:,1:2)),max(bin(:,3))];
         end
         % Prompt user to save the collected annotations
-        [~,defaultname,ext] = fileparts(handles.wmp.URL);
+        [~,defaultname,ext] = fileparts(handles.MRL);
         [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
             '*.xls','Excel 2003 Spreadsheet (*.xls)';...
             '*.csv','Comma-Separated Values (*.csv)'},'Save as',defaultname);
@@ -288,17 +299,12 @@ function timer_Callback(~,~,handles)
             'DARMA','Yes','No','Yes');
         switch choice
             case 'Yes'
-                annotations('URL',handles.wmp.URL,'Ratings',mean_ratings,'Duration',handles.dur,'Magnitude',handles.mag,'Filename',filename);
+                annotations('MRL',handles.MRL,'Ratings',mean_ratings,'Duration',handles.dur,'Magnitude',handles.mag,'Filename',filename);
             case 'No'
                 return;
         end
     % While transitioning or paused
-    elseif strcmp(handles.wmp.playState,'wmppsTransitioning') || strcmp(handles.wmp.playState,'wmppsPaused')
-        return;
-    % While crashed
     else
-        stop(handles.timer);
-        msgbox(sprintf('Error: %s',handles.wmp.playState),'Error','error');
         return;
     end
 end
@@ -307,9 +313,10 @@ end
 
 function timer_ErrorFcn(~,~,handles)
     handles = guidata(handles.figure_main);
-    handles.wmp.controls.pause();
+    handles.vlc.playlist.togglePause();
     stop(handles.timer);
     msgbox('Timer callback error.','Error','error');
+    disp(handles.rating);
     guidata(handles.figure_main,handles);
 end
 
@@ -328,6 +335,7 @@ function create_axis(handles)
     text(-0.64,-0.64,handles.label5,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.0,-0.9,handles.label6,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.64,-0.64,handles.label7,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    guidata(handles.figure_main,handles);
 end
 
 % =========================================================
@@ -341,9 +349,9 @@ function figure_main_SizeChanged(hObject,~)
             setpixelposition(handles.figure_main,[pos(1) pos(2) 1024 600]);
             movegui(handles.figure_main,'center');
         end
-        % Update the size and position of the WMP controller
-        if isfield(handles,'wmp')
-            move(handles.wmp,getpixelposition(handles.axis_guide));
+        % Update the size and position of the VLC controller
+        if isfield(handles,'vlc')
+            move(handles.vlc,getpixelposition(handles.axis_guide));
         end
     end
 end
@@ -353,20 +361,32 @@ end
 function figure_main_CloseReq(hObject,~)
     handles = guidata(hObject);
     % Pause playback and rating
-    handles.wmp.controls.pause();
+    if handles.vlc.input.state==3,handles.vlc.playlist.togglePause(); end
     if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
     set(handles.toggle_playpause,'String','Resume','Value',0);
     handles.recording = 0;
     guidata(handles.figure_main,handles);
-    % Prompt user if they really want to close
-    choice = questdlg('Do you really want to close DARMA?', ...
-        'DARMA','Yes','No','No');
-    switch choice
-        case 'Yes'
-            delete(handles.timer);
-            delete(gcf);
-        case 'No'
-            return;
+    pause(.1); 
+    if handles.vlc.input.state==4
+        choice = questdlg('Do you want to cancel your current ratings?', ...
+            'DARMA','Yes','No','No');
+        switch choice
+            case 'Yes'
+                handles.vlc.playlist.stop();
+                program_reset(handles);
+            case 'No'
+                return;
+        end
+    else
+        choice = questdlg('Do you want to exit DARMA?', ...
+            'DARMA','Yes','No','No');
+        switch choice
+            case 'Yes'
+                delete(handles.timer);
+                delete(gcf);
+            case 'No'
+                return;
+        end
     end
 end
 
@@ -374,23 +394,26 @@ end
 
 function menu_multimedia_Callback(hObject,~)
     handles = guidata(hObject);
+    % Reset the GUI elements
+    program_reset(handles);
     % Browse for, load, and get text_duration for a multimedia file
     [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file');
     if video_name==0, return; end
     try
-        handles.wmp.URL = fullfile(video_path,video_name);
-        handles.wmp.controls.play();
-        while ~strcmp(handles.wmp.playState,'wmppsPlaying')
+        MRL = fullfile(video_path,video_name);
+        MRL(MRL=='\') = '/';
+        handles.MRL = sprintf('file://localhost/%s',MRL);
+        handles.vlc.playlist.add(handles.MRL);
+        handles.vlc.playlist.play();
+        while handles.vlc.input.state ~= 3
             pause(0.001);
         end
-        handles.wmp.controls.pause();
-        handles.wmp.controls.currentPosition = 0;
-        handles.dur = handles.wmp.currentMedia.duration;
+        handles.vlc.playlist.togglePause();
+        handles.vlc.input.time = 0;
+        handles.dur = handles.vlc.input.length / 1000;
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
     end
-    % Reset the GUI elements
-    program_reset(handles);
     % Update GUI elements
     set(handles.menu_annotation,'Enable','On');
     set(handles.text_report,'String','Press Play');
@@ -413,7 +436,7 @@ function menu_annotation_Callback(hObject,~)
     Ratings = cell2mat(data(6:end,:));
     Magnitude = cell2mat(data(3,2));
     % Execute the annotations() function
-    annotations('URL',handles.wmp.URL,'Ratings',Ratings,'Duration',handles.dur,'Magnitude',Magnitude,'Filename',filename);
+    annotations('MRL',handles.MRL,'Ratings',Ratings,'Duration',handles.dur,'Magnitude',Magnitude,'Filename',filename);
 end
 
 % =========================================================
@@ -445,7 +468,7 @@ end
 function menu_about_Callback(~,~)
     % Display information menu_about CARMA
     line1 = 'Dual Axis Rating and Media Annotation';
-    line2 = 'Version 1.01 <11-03-2014>';
+    line2 = 'Version 2.00 <DEC 05 2014>';
     line3 = 'Manual: http://darma.codeplex.com/documentation';
     line4 = 'Support: http://darma.codeplex.com/discussion';
     line5 = 'License: http://darma.codeplex.com/license';

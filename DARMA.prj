@@ -1,14 +1,14 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="3151690554" file="Z:\Jeff Projects\DARMA Source\DARMA.prj" location="Z:\Jeff Projects\DARMA Source" name="DARMA" preferred-package-location="Z:\Jeff Projects\DARMA Source\DARMA\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
+  <configuration build-checksum="133538082" file="Z:\Jeff Girard\Software\Continuous_Measurement\DARMA\DARMA.prj" location="Z:\Jeff Girard\Software\Continuous_Measurement\DARMA" name="DARMA" preferred-package-location="Z:\Jeff Girard\Software\Continuous_Measurement\DARMA\DARMA\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
     <param.appname>DARMA</param.appname>
     <param.icon />
     <param.icons />
-    <param.version>3.02</param.version>
+    <param.version>2.00</param.version>
     <param.authnamewatermark>Jeffrey M. Girard</param.authnamewatermark>
     <param.email>jmg174@pitt.edu</param.email>
     <param.company>University of Pittsburgh</param.company>
     <param.summary>Dual Axis Rating and Media Annotation</param.summary>
-    <param.description>BETA VERSION. DO NOT DISTRIBUTE.</param.description>
+    <param.description>DARMA allows users to play multimedia files while simultaneously collecting continuous ratings in a circumplex space using a computer joystick. DARMA was first published by Jeffrey Girard in 2014 under the GNU General Public License version 3 (GPUv3). Additional information about the license can be found at: https://darma.codeplex.com/license. Users are free to use, distribute, and modify the program as outlined in the license.</param.description>
     <param.screenshot />
     <param.guid />
     <param.installpath.string>\DARMA\</param.installpath.string>
@@ -41,6 +41,8 @@
     <unset>
       <param.icon />
       <param.icons />
+      <param.email />
+      <param.company />
       <param.screenshot />
       <param.guid />
       <param.installpath.combo />
@@ -76,9 +78,9 @@
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="readme.txt" optional="true">Z:\Jeff Projects\DARMA Source\DARMA\for_testing\readme.txt</file>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="splash.png" optional="false">Z:\Jeff Projects\DARMA Source\DARMA\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="DARMA.exe" optional="false">Z:\Jeff Projects\DARMA Source\DARMA\for_testing\DARMA.exe</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="readme.txt" optional="true">Z:\Jeff Girard\Software\Continuous_Measurement\DARMA\DARMA\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="DARMA.exe" optional="false">Z:\Jeff Girard\Software\Continuous_Measurement\DARMA\DARMA\for_testing\DARMA.exe</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="splash.png" optional="false">Z:\Jeff Girard\Software\Continuous_Measurement\DARMA\DARMA\for_testing\splash.png</file>
     </build-deliverables>
     <workflow />
     <matlab>
