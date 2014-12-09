@@ -1,6 +1,6 @@
 function [ updated ] = fig_configure( previous )
-%CONFIGURE Summary of this function goes here
-%   Detailed explanation goes here
+%FIG_CONFIGURE Window for the configuration of settings
+%   License: https://darma.codeplex.com/license
 
     prompt = {'Magnitude','Samples per second','Label X:','Label Y:','Label 0:','Label 1:','Label 2:','Label 3:','Label 4:','Label 5:','Label 6:','Label 7:'};
     dlg_title = 'DARMA Settings';

@@ -1,5 +1,5 @@
-function review(settings)
-%REVIEW Code for the Review window and functions
+function fig_review(settings)
+%FIG_REVIEW Window to review existing ratings
 % License: https://darma.codeplex.com/license
 
     % Create and maximize annotation window

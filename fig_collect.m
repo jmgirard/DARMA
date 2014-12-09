@@ -1,5 +1,5 @@
 function fig_collect(settings)
-%MAIN Code for the main DARMA window and functions
+%FIG_COLLECT Window for the collection of ratings
 % License: https://darma.codeplex.com/license
 
     % Create and center main window
@@ -63,19 +63,6 @@ function fig_collect(settings)
         'Box','on','XTick',[],'YTick',[],'Layer','top');
     axis square;
     handles.settings = settings;
-    % Check for and find VideoLAN VLC Player ActiveX Controller
-    axctl = actxcontrollist;
-    index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
-    if sum(index)==0
-        choice = questdlg('DARMA requires the free, open source VLC media player. Open download page?',...
-            'DARMA','Yes','No','Yes');
-        switch choice
-            case 'Yes'
-                web('http://www.videolan.org/','-browser');
-        end
-        delete(handles.figure_collect);
-        return;
-    end
     % Invoke and configure VLC ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_collect);
     pause(0.5);

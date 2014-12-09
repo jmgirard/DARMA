@@ -1,5 +1,5 @@
 function fig_launcher
-%LAUNCHER Code for the DARMA launcher window and functions
+%FIG_LAUNCHER Window to launch the other windows
 % License: https://darma.codeplex.com/license
 
     % Create and center main window
@@ -62,6 +62,18 @@ function fig_launcher
     handles.settings.label6 = 'Submissive';
     handles.settings.label7 = 'Agreeable';
     guidata(handles.figure_launcher,handles);
+    % Check that VLC is installed
+    axctl = actxcontrollist;
+    index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
+    if sum(index)==0
+        choice = questdlg('DARMA requires the free, open source VLC media player. Open download page?',...
+            'DARMA','Yes','No','Yes');
+        switch choice
+            case 'Yes'
+                web('http://www.videolan.org/','-browser');
+        end
+        delete(handles.figure_launcher);
+    end
 end
 
 function push_collect_Callback(hObject,~)
