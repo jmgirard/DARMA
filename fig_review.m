@@ -274,34 +274,45 @@ function button_delseries_Callback(hObject,~)
     % Cancel if the first row is selected
     if index == 0, msgbox('You cannot delete the first row.'); return; end
     % Cancel if only one row remains
-    if size(handles.AllRatingsX,2)<2, msgbox('At least one file must remain.'); return; end
-    % Remove the selected item from program
-    handles.AllRatingsX(:,index) = [];
-    handles.AllRatingsY(:,index) = [];
-    handles.AllFilenames(index) = [];
-    % Update mean series
-    handles.MeanRatingsX = mean(handles.AllRatingsX,2);
-    handles.MeanRatingsY = mean(handles.AllRatingsY,2);
-    % Update plot and listbox
-    guidata(handles.figure_review,handles);
-    update_plots(handles);
+    if size(handles.AllRatingsX,2)<2,
+        handles.AllRatingsX = zeros(0,1);
+        handles.AllRatingsY = zeros(0,1);
+        handles.MeanRatingsX = zeros(0,1);
+        handles.MeanRatingsY = zeros(0,1);
+        handles.AllFilenames = cell(0,1);
+        cla(handles.axis_X);
+        cla(handles.axis_Y);
+        cla(handles.axis_C);
+        set(handles.axis_X,'PickableParts','none');
+        set(handles.axis_Y,'PickableParts','none');
+    else
+        % Remove the selected item from program
+        handles.AllRatingsX(:,index) = [];
+        handles.AllRatingsY(:,index) = [];
+        handles.AllFilenames(index) = [];
+        % Update mean series
+        handles.MeanRatingsX = mean(handles.AllRatingsX,2);
+        handles.MeanRatingsY = mean(handles.AllRatingsY,2);
+        guidata(handles.figure_review,handles);
+        update_plots(handles);
+    end
     % Update list box
     set(handles.listbox,'Value',1);
     CS = get(gca,'ColorOrder');
     rows = {'<html><u>Annotation Files'};
-    for i = 1:size(handles.AllRatingsX,2)
-        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
-    end
-    set(handles.listbox,'String',rows);
-    % Update reliability box
-    box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-    set(handles.reliability,'Data',box);
-    % Turn off multiplot options if only one plot is left
     if size(handles.AllRatingsX,2)<2
+        box = '';
         set(handles.toggle_meanplot,'Enable','off','Value',0);
+    else
+        for i = 1:size(handles.AllRatingsX,2)
+            colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+        end
+        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
         toggle_meanplot_Callback(handles.toggle_meanplot,[]);
     end
+    set(handles.listbox,'String',rows);
+    set(handles.reliability,'Data',box);
     % Update guidata with handles
     guidata(handles.figure_review,handles);
 end
@@ -464,6 +475,7 @@ end
 
 function update_plots(handles)
     handles = guidata(handles.figure_review);
+    if size(handles.AllRatingsX,2)<1, return; end
     if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         % Configure first (X) axis for normal plots
         axes(handles.axis_X); cla;
