@@ -22,7 +22,7 @@ function fig_launcher
         'Box','on','XTick',[],'YTick',[],...
         'ButtonDownFcn',@website);
     xlim([-1 1]); ylim([-1 1]);
-    text(0,0,'DARMA v3.00','Color',[1 1 1],'FontSize',50,...
+    text(0,0,'DARMA v3.01','Color',[1 1 1],'FontSize',50,...
         'FontName','cambria','HorizontalAlignment','center',...
         'ButtonDownFcn',@website);
     %TODO: Set 'cdata' to a resized image for each button
@@ -48,20 +48,21 @@ function fig_launcher
         'FontSize',18, ...
         'Callback',@push_configure_Callback);
     align([handles.push_collect,handles.push_review,handles.push_configure],'distribute','bottom');
-    % Configure default settings
-    handles.settings.mag = 1000;
-    handles.settings.sps = 2;
-    handles.settings.labelX = 'Communion';
-    handles.settings.labelY = 'Agency';
-    handles.settings.label0 = 'Friendly';
-    handles.settings.label1 = 'Extraverted';
-    handles.settings.label2 = 'Dominant';
-    handles.settings.label3 = 'Disagreeable';
-    handles.settings.label4 = 'Separate';
-    handles.settings.label5 = 'Introverted';
-    handles.settings.label6 = 'Submissive';
-    handles.settings.label7 = 'Agreeable';
     guidata(handles.figure_launcher,handles);
+    % Configure default settings
+    global settings;
+    settings.mag = 1000;
+    settings.sps = 2;
+    settings.labelX = 'Communion';
+    settings.labelY = 'Agency';
+    settings.label1 = 'Dominant';
+    settings.label2 = 'Disagreeable';
+    settings.label3 = 'Extraverted';
+    settings.label4 = 'Separate';
+    settings.label5 = 'Friendly';
+    settings.label6 = 'Introverted';
+    settings.label7 = 'Agreeable';
+    settings.label8 = 'Submissive';
     % Check that VLC is installed
     axctl = actxcontrollist;
     index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
@@ -76,20 +77,17 @@ function fig_launcher
     end
 end
 
-function push_collect_Callback(hObject,~)
-    handles = guidata(hObject);
-    fig_collect(handles.settings);
+function push_collect_Callback(~,~)
+    fig_collect;
 end
 
-function push_review_Callback(hObject,~)
-    handles = guidata(hObject);
-    fig_review(handles.settings);
+function push_review_Callback(~,~)
+    fig_review;
 end
 
-function push_configure_Callback(hObject,~)
-    handles = guidata(hObject);
-    handles.settings = fig_configure(handles.settings);
-    guidata(handles.figure_launcher,handles);
+function push_configure_Callback(~,~)
+    fig_configure();
+    uiwait(findobj('Name','DARMA: Configure'));
 end
 
 function website(~,~)

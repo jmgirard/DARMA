@@ -1,4 +1,4 @@
-function fig_collect(settings)
+function fig_collect
 %FIG_COLLECT Window for the collection of ratings
 % License: https://darma.codeplex.com/license
 
@@ -62,7 +62,6 @@ function fig_collect(settings)
         'NextPlot','add', ...
         'Box','on','XTick',[],'YTick',[],'Layer','top');
     axis square;
-    handles.settings = settings;
     % Invoke and configure VLC ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_collect);
     pause(0.5);
@@ -174,6 +173,7 @@ end
 
 function timer_Callback(~,~,handles)
     handles = guidata(handles.figure_collect);
+    global settings;
     % Before playing
     if handles.recording==0
         try
@@ -205,7 +205,7 @@ function timer_Callback(~,~,handles)
         create_axis(handles);
         if b(1)==0, color = 'r'; else color = 'g'; end
         plot(handles.axis_circle,x,y,'ko','LineWidth',2,'MarkerSize',15,'MarkerFace',color);
-        handles.rating = [handles.rating; t,x*handles.settings.mag,y*handles.settings.mag,b(1)];
+        handles.rating = [handles.rating; t,x*settings.mag,y*settings.mag,b(1)];
         set(handles.text_report,'string',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
         drawnow();
         guidata(handles.figure_collect,handles);
@@ -220,7 +220,7 @@ function timer_Callback(~,~,handles)
         % Average ratings per second of playback
         rating = handles.rating;
         mean_ratings = [];
-        anchors = [0,(1/handles.settings.sps:1/handles.settings.sps:handles.dur)];
+        anchors = [0,(1/settings.sps:1/settings.sps:handles.dur)];
         for i = 1:length(anchors)-1
             s_start = anchors(i);
             s_end = anchors(i+1);
@@ -238,7 +238,7 @@ function timer_Callback(~,~,handles)
             output = [ ...
                 {'Time of Rating'},{datestr(now)},{''},{''}; ...
                 {'Multimedia File'},{sprintf('%s%s',defaultname,ext)},{''},{''}; ...
-                {'Magnitude'},{handles.settings.mag},{''},{''}; ...
+                {'Magnitude'},{settings.mag},{''},{''}; ...
                 {'Second'},{'X'},{'Y'},{'B'}; ...
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
@@ -265,8 +265,6 @@ function timer_Callback(~,~,handles)
                 h = msgbox('Export error.');
                 waitfor(h);
             end
-        else
-            filename = 'Unsaved';
         end
         program_reset(handles);
     % While transitioning or paused
@@ -291,17 +289,18 @@ end
 
 function create_axis(handles)
     handles = guidata(handles.figure_collect);
+    global settings;
     axes(handles.axis_circle); cla;
     plot(handles.axis_circle,[-1,1],[0,0],'k-');
     plot(handles.axis_circle,[0,0],[-1,1],'k-');
-    text(0.9,0.0,handles.settings.label0,'HorizontalAlignment','right','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.64,0.64,handles.settings.label1,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.0,0.9,handles.settings.label2,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(-0.64,0.64,handles.settings.label3,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(-0.9,0.0,handles.settings.label4,'HorizontalAlignment','left','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(-0.64,-0.64,handles.settings.label5,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.0,-0.9,handles.settings.label6,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.64,-0.64,handles.settings.label7,'HorizontalAlignment','center','VerticalAlignment','middle','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(0.0,0.9,settings.label1,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(-0.64,0.64,settings.label2,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(0.64,0.64,settings.label3,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5); 
+    text(-0.9,0.0,settings.label4,'HorizontalAlignment','left','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(0.9,0.0,settings.label5,'HorizontalAlignment','right','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(-0.64,-0.64,settings.label6,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(0.64,-0.64,settings.label7,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    text(0.0,-0.9,settings.label8,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     guidata(handles.figure_collect,handles);
 end
 
