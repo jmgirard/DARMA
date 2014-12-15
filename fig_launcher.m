@@ -22,7 +22,7 @@ function fig_launcher
         'Box','on','XTick',[],'YTick',[],...
         'ButtonDownFcn',@website);
     xlim([-1 1]); ylim([-1 1]);
-    text(0,0,'DARMA v3.01','Color',[1 1 1],'FontSize',50,...
+    text(0,0,'DARMA v3.02','Color',[1 1 1],'FontSize',50,...
         'FontName','cambria','HorizontalAlignment','center',...
         'ButtonDownFcn',@website);
     %TODO: Set 'cdata' to a resized image for each button
@@ -53,6 +53,7 @@ function fig_launcher
     global settings;
     settings.mag = 1000;
     settings.sps = 2;
+    settings.folder = '';
     settings.labelX = 'Communion';
     settings.labelY = 'Agency';
     settings.label1 = 'Dominant';

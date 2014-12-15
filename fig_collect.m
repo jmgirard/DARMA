@@ -64,7 +64,6 @@ function fig_collect
     axis square;
     % Invoke and configure VLC ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_collect);
-    pause(0.5);
     handles.vlc.AutoPlay = 0;
     handles.vlc.Toolbar = 0;
     handles.vlc.FullscreenEnabled = 0;
@@ -92,12 +91,13 @@ end
 
 function menu_multimedia_Callback(hObject,~)
     handles = guidata(hObject);
+    global settings;
     % Reset the GUI elements
     program_reset(handles);
     handles.vlc.playlist.items.clear();
     handles.rating = [];
     % Browse for, load, and get text_duration for a multimedia file
-    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file');
+    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file',fullfile(settings.folder));
     if video_name==0, return; end
     try
         MRL = fullfile(video_path,video_name);
@@ -232,7 +232,7 @@ function timer_Callback(~,~,handles)
         [~,defaultname,ext] = fileparts(handles.MRL);
         [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
             '*.xls','Excel 2003 Spreadsheet (*.xls)';...
-            '*.csv','Comma-Separated Values (*.csv)'},'Save as',defaultname);
+            '*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
         if ~isequal(filename,0) && ~isequal(pathname,0)
             % Add metadata to mean ratings and timestamps
             output = [ ...
@@ -249,7 +249,7 @@ function timer_Callback(~,~,handles)
                 [success,message] = xlswrite(fullfile(pathname,filename),output);
                 if strcmp(message.identifier,'MATLAB:xlswrite:dlmwrite')
                     % If Excel is not installed, create CSV file instead
-                    serror = errordlg('Exporting to .XLS/.XLSX requires Microsoft Excel to be installed. CARMA will now export to .CSV instead.');
+                    serror = errordlg('Exporting to .XLS/.XLSX requires Microsoft Excel to be installed. DARMA will now export to .CSV instead.');
                     uiwait(serror);
                     success = fx_cell2csv(fullfile(pathname,filename),output);
                 end
@@ -277,11 +277,12 @@ end
 
 function timer_ErrorFcn(~,~,handles)
     handles = guidata(handles.figure_collect);
+    global settings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
     msgbox('Timer callback error.','Error','error');
     disp(handles.rating);
-    csvwrite(sprintf('%s.csv',datestr(now,30)),handles.rating);
+    csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),handles.rating);
     guidata(handles.figure_collect,handles);
 end
 

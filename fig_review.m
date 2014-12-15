@@ -31,6 +31,7 @@ function fig_review
     handles.menu_export = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Export Mean Ratings', ...
+        'Enable','off', ...
         'Callback',@menu_export_Callback);
     pause(0.1);
     %Create uicontrol elements
@@ -113,23 +114,20 @@ function fig_review
         'String','Play', ...
         'FontSize',16.0, ...
         'Callback',@toggle_playpause_Callback);
-    % Check for and find Window Media Player (WMP) ActiveX Controller
-    axctl = actxcontrollist;
-    index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
-    if sum(index)==0,errordlg('Please install VideoLAN VLC Media Player'); quit force; end
     % Invoke and configure WMP ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_review);
-    pause(0.5);
     handles.vlc.AutoPlay = 0;
     handles.vlc.Toolbar = 0;
     handles.vlc.FullscreenEnabled = 0;
     % Prepopulate variables
     set(handles.listbox,'String',{'<html><u>Annotation Files'},'Value',1);
     handles.AllFilenames = cell(0,1);
-    handles.AllRatingsX = [];
-    handles.AllRatingsY = [];
-    handles.MeanRatingsX = [];
-    handles.MeanRatingsY = [];
+    handles.AllRatingsX = zeros(0,1);
+    handles.AllRatingsY = zeros(0,1);
+    handles.MeanRatingsX = zeros(0,1);
+    handles.MeanRatingsY = zeros(0,1);
+    handles.mag = zeros(0,1);
+    handles.MRL = cell(0,1);
     % Create timer
 	handles.timer2 = timer(...
         'ExecutionMode','fixedRate', ...
@@ -144,10 +142,11 @@ end
 
 function menu_multimedia_Callback(hObject,~)
     handles = guidata(hObject);
+    global settings;
     % Reset the GUI elements
     handles.vlc.playlist.items.clear();
     % Browse for, load, and get text_duration for a multimedia file
-    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file');
+    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file:',fullfile(settings.folder));
     if video_name==0, return; end
     try
         MRL = fullfile(video_path,video_name);
@@ -174,19 +173,25 @@ end
 function menu_export_Callback(hObject,~)
     handles = guidata(hObject);
     global settings;
-    [~,defaultname,ext] = fileparts(handles.URL);
+    if isempty(handles.MRL)
+        %TODO: Pull this information from the annotation file
+        name = ''; ext = '';
+        defaultname = 'Mean';
+    else
+        [~,name,ext] = fileparts(handles.MRL);
+        defaultname = sprintf('%s_Mean',name);
+    end
     output = [ ...
         {'Time of Rating'},{datestr(now)},{''},{''}; ...
-        {'Multimedia File'},{sprintf('%s%s',defaultname,ext)},{''},{''}; ...
-        {'Magnitude'},{settings.mag},{''},{''}; ...
+        {'Multimedia File'},{sprintf('%s%s',name,ext)},{''},{''}; ...
+        {'Magnitude'},{handles.mag},{''},{''}; ...
         {'Second'},{'X'},{'Y'},{'B'}; ...
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
-    defaultname = sprintf('%s_Mean',defaultname);
     %Prompt user for output filepath
     [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
         '*.xls','Excel 2003 Spreadsheet (*.xls)';...
-        '*.csv','Comma-Separated Values (*.csv)'},'Save as',defaultname);
+        '*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
     if isequal(filename,0), return; end
     % Create export file depending on selected file type
     [~,~,ext] = fileparts(filename);
@@ -219,7 +224,7 @@ function button_addseries_Callback(hObject,~)
     handles = guidata(hObject);
     global settings;
     % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','DARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations','MultiSelect','on');
+    [filenames,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','DARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
     if ~iscell(filenames)
         if filenames==0, return; end
         filenames = {filenames};
@@ -227,12 +232,15 @@ function button_addseries_Callback(hObject,~)
     for f = 1:length(filenames)
         filename = filenames{f};
         [~,~,data] = xlsread(fullfile(pathname,filename));
-        if cell2mat(data(3,2))~=settings.mag
-            msgbox('Annotation file must have the same magnitude as the other annotation files.','Error','error');
+        % Get settings from import file    
+        if isempty(handles.mag)
+            handles.mag = data{3,2};
+        elseif handles.mag ~= data{3,2}
+            msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
             return;
         end
         % Check that the import file matches the multimedia file
-        if size(handles.AllRatingsX,2) > 1 && size(handles.AllRatingsX,1) ~= size(data(6:end,:),1)
+        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data(6:end,:),1)
             msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
             return;
         else
@@ -263,6 +271,7 @@ function button_addseries_Callback(hObject,~)
         end
     end
     set(handles.toggle_meanplot,'Enable','on');
+    set(handles.menu_export,'Enable','on');
     guidata(handles.figure_review,handles);
 end
 
@@ -281,6 +290,7 @@ function button_delseries_Callback(hObject,~)
         handles.MeanRatingsX = zeros(0,1);
         handles.MeanRatingsY = zeros(0,1);
         handles.AllFilenames = cell(0,1);
+        handles.mag = zeros(0,1);
         cla(handles.axis_X);
         cla(handles.axis_Y);
         cla(handles.axis_C);
@@ -304,10 +314,12 @@ function button_delseries_Callback(hObject,~)
     if isempty(handles.AllRatingsX)
         box = '';
         set(handles.toggle_meanplot,'Enable','off','Value',0);
+        set(handles.menu_export,'Enable','off');
     elseif size(handles.AllRatingsX,2)==1
         rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(1,:)),1,handles.AllFilenames{1})];
         box = reliability(handles.AllRatingsX,handles.AllRatingsY);
         set(handles.toggle_meanplot,'Enable','off','Value',0);
+        set(handles.menu_export,'Enable','off');
     else
         for i = 1:size(handles.AllRatingsX,2)
             colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
@@ -378,18 +390,17 @@ end
 
 function timer2_Callback(~,~,handles)
     handles = guidata(handles.figure_review);
-    global settings;
     if handles.vlc.input.state == 3
         % While playing, update annotations plot
         ts = handles.vlc.input.time/1000;
         update_plots(handles);
         axes(handles.axis_X);
         hold on;
-        plot(handles.axis_X,[ts,ts],[settings.mag,-1*settings.mag],'k');
+        plot(handles.axis_X,[ts,ts],[handles.mag,-1*handles.mag],'k');
         hold off;
         axes(handles.axis_Y);
         hold on;
-        plot(handles.axis_Y,[ts,ts],[settings.mag,-1*settings.mag],'k');
+        plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
         hold off;
         drawnow();
     elseif handles.vlc.input.state == 6 || handles.vlc.input.state == 5
@@ -409,7 +420,6 @@ end
 
 function axis_click_Callback(hObject,~,axis)
     handles = guidata(hObject);
-    global settings;
     % Jump VLC playback to clicked position
     if strcmp(axis,'X')
         coord = get(handles.axis_X,'CurrentPoint');
@@ -430,11 +440,11 @@ function axis_click_Callback(hObject,~,axis)
     update_plots(handles);
     axes(handles.axis_X);
     hold on;
-    plot(handles.axis_X,[ts,ts],[settings.mag,-1*settings.mag],'k');
+    plot(handles.axis_X,[ts,ts],[handles.mag,-1*handles.mag],'k');
     hold off;
     axes(handles.axis_Y);
     hold on;
-    plot(handles.axis_Y,[ts,ts],[settings.mag,-1*settings.mag],'k');
+    plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
     hold off;
     drawnow();
 end
@@ -443,11 +453,10 @@ end
 
 function listbox_Callback(hObject,~)
     handles = guidata(hObject);
-    global settings;
     val = get(handles.listbox,'value')-1;
     cla(handles.axis_C);
     if val == 0, return; end
-    set(handles.axis_C,'XLim',[-1*settings.mag,settings.mag],'YLim',[-1*settings.mag,settings.mag]);
+    set(handles.axis_C,'XLim',[-1*handles.mag,handles.mag],'YLim',[-1*handles.mag,handles.mag]);
     axes(handles.axis_C);
     CS = get(gca,'ColorOrder');
     colorindex = mod(val,7); if colorindex==0, colorindex = 7; end
@@ -469,7 +478,7 @@ function listbox_Callback(hObject,~)
     for i = 1:size(dataX,1)
         %Plot semi-transparent circle
         THETA = linspace(0,2*pi,10);
-        RHO = ones(1,10)*settings.mag/15;
+        RHO = ones(1,10)*handles.mag/15;
         [X,Y] = pol2cart(THETA,RHO);
         X = X+dataX(i);
         Y = Y+dataY(i);
@@ -484,12 +493,12 @@ end
 function update_plots(handles)
     handles = guidata(handles.figure_review);
     global settings;
-    if size(handles.AllRatingsX,2)<1, return; end
+    if isempty(handles.AllRatingsX), return; end
     if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         % Configure first (X) axis for normal plots
         axes(handles.axis_X); cla;
         plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'X'});
-        ylim([-1*settings.mag,settings.mag]);
+        ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(settings.labelX,'FontSize',10);
@@ -497,7 +506,7 @@ function update_plots(handles)
         % Configure second (Y) axis for normal plots
         axes(handles.axis_Y); cla;
         plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'Y'});
-        ylim([-1*settings.mag,settings.mag]);
+        ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(settings.labelY,'FontSize',10);
@@ -510,7 +519,7 @@ function update_plots(handles)
         hold on;
         plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'X'});
         plot(handles.Seconds,handles.MeanRatingsX,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'X'});
-        ylim([-1*settings.mag,settings.mag]);
+        ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(settings.labelX,'FontSize',10);
@@ -519,7 +528,7 @@ function update_plots(handles)
         hold on;
         plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'Y'});
         plot(handles.Seconds,handles.MeanRatingsY,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'Y'});
-        ylim([-1*settings.mag,settings.mag]);
+        ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(settings.labelY,'FontSize',10);
