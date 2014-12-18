@@ -132,6 +132,7 @@ function figure_collect_KeyPress(hObject,eventdata)
     if strcmp(eventdata.Key,'space') && get(handles.toggle_playpause,'value')
         handles.vlc.playlist.togglePause();
         stop(handles.timer);
+        handles.recording = 0;
         set(handles.toggle_playpause,'String','Resume','Value',0);
     else
         return;
