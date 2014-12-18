@@ -127,6 +127,8 @@ function fig_review
     handles.MeanRatingsX = zeros(0,1);
     handles.MeanRatingsY = zeros(0,1);
     handles.mag = zeros(0,1);
+    handles.labelX = cell(0,1);
+    handles.labelY = cell(0,1);
     handles.MRL = cell(0,1);
     % Create timer
 	handles.timer2 = timer(...
@@ -185,7 +187,7 @@ function menu_export_Callback(hObject,~)
         {'Time of Rating'},{datestr(now)},{''},{''}; ...
         {'Multimedia File'},{sprintf('%s%s',name,ext)},{''},{''}; ...
         {'Magnitude'},{handles.mag},{''},{''}; ...
-        {'Second'},{'X'},{'Y'},{'B'}; ...
+        {'Second'},{handles.labelX},{handles.labelY},{'B'}; ...
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
     %Prompt user for output filepath
@@ -235,6 +237,8 @@ function button_addseries_Callback(hObject,~)
         % Get settings from import file    
         if isempty(handles.mag)
             handles.mag = data{3,2};
+            handles.labelX = data{4,2};
+            handles.labelY = data{4,3};
         elseif handles.mag ~= data{3,2}
             msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
             return;
@@ -492,7 +496,6 @@ end
 
 function update_plots(handles)
     handles = guidata(handles.figure_review);
-    global settings;
     if isempty(handles.AllRatingsX), return; end
     if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         % Configure first (X) axis for normal plots
@@ -501,7 +504,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
-        ylabel(settings.labelX,'FontSize',10);
+        ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         % Configure second (Y) axis for normal plots
         axes(handles.axis_Y); cla;
@@ -509,7 +512,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
-        ylabel(settings.labelY,'FontSize',10);
+        ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         handles.CS = get(gca,'ColorOrder');
     elseif get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Max')
@@ -522,7 +525,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
-        ylabel(settings.labelX,'FontSize',10);
+        ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
         axes(handles.axis_Y); cla;
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         hold on;
@@ -531,7 +534,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
-        ylabel(settings.labelY,'FontSize',10);
+        ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
         hold off;
     end
     guidata(handles.figure_review,handles);
