@@ -78,9 +78,12 @@ function fig_collect
     handles.recording = 0;
     handles.timer = timer(...
         'ExecutionMode','fixedRate', ...
-        'Period',0.08, ...
+        'Period',0.05, ...
         'TimerFcn',{@timer_Callback,handles}, ...
         'ErrorFcn',{@timer_ErrorFcn,handles});
+    % Start system clock to improve VLC time stamp precision
+    global global_tic;
+    global_tic = tic;
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
     guidata(handles.figure_collect,handles);
@@ -91,11 +94,16 @@ end
 
 function menu_multimedia_Callback(hObject,~)
     handles = guidata(hObject);
-    global settings;
     % Reset the GUI elements
     program_reset(handles);
+    global settings;
+    global ratings;
+    global last_ts_vlc;
+    global last_ts_sys;
+    ratings = [];
+    last_ts_vlc = 0;
+    last_ts_sys = 0;
     handles.vlc.playlist.items.clear();
-    handles.rating = [];
     % Browse for, load, and get text_duration for a multimedia file
     [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file',fullfile(settings.folder));
     if video_name==0, return; end
@@ -175,6 +183,11 @@ end
 function timer_Callback(~,~,handles)
     handles = guidata(handles.figure_collect);
     global settings;
+    global ratings;
+    global last_ts_vlc;
+    global last_ts_sys;
+    global global_tic;
+    global marker;
     % Before playing
     if handles.recording==0
         try
@@ -185,9 +198,8 @@ function timer_Callback(~,~,handles)
             return;
         end
         x = a(1); y = a(2)*-1;
-        create_axis(handles);
         if b(1)==0, color = 'w'; else color = 'y'; end
-        plot(handles.axis_circle,x,y,'ko','LineWidth',2,'MarkerSize',15,'MarkerFace',color);
+        set(marker,'XData',x,'YData',y,'MarkerFace',color,'Visible','on');
         return;
     end
     % While playing
@@ -201,12 +213,19 @@ function timer_Callback(~,~,handles)
             guidata(handles.figure_collect,handles);
             return;
         end
-        t = handles.vlc.input.time / 1000;
+        ts_vlc = handles.vlc.input.time/1000;
+        ts_sys = toc(global_tic);
+        if ts_vlc == last_ts_vlc && last_ts_vlc ~= 0
+            ts_diff = ts_sys - last_ts_sys;
+            ts_vlc = ts_vlc + ts_diff;
+        else
+            last_ts_vlc = ts_vlc;
+            last_ts_sys = ts_sys;
+        end
         x = a(1); y = a(2)*-1;
-        create_axis(handles);
         if b(1)==0, color = 'r'; else color = 'g'; end
-        plot(handles.axis_circle,x,y,'ko','LineWidth',2,'MarkerSize',15,'MarkerFace',color);
-        handles.rating = [handles.rating; t,x*settings.mag,y*settings.mag,b(1)];
+        set(marker,'XData',x,'YData',y,'MarkerFace',color,'Visible','on');
+        ratings = [ratings; ts_vlc,x*settings.mag,y*settings.mag,b(1)];
         set(handles.text_report,'string',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
         drawnow();
         guidata(handles.figure_collect,handles);
@@ -219,15 +238,18 @@ function timer_Callback(~,~,handles)
         create_axis(handles);
         set(handles.text_report,'string','Processing...');
         % Average ratings per second of playback
-        rating = handles.rating;
-        mean_ratings = [];
+        rating = ratings;
+        disp(rating);
         anchors = [0,(1/settings.sps:1/settings.sps:handles.dur)];
+        mean_ratings = repmat(9999,length(anchors)-1,4);
+        mean_ratings(:,1) = anchors(2:end)';
         for i = 1:length(anchors)-1
             s_start = anchors(i);
             s_end = anchors(i+1);
             index = (rating(:,1) >= s_start) & (rating(:,1) < s_end);
             bin = rating(index,2:end);
-            mean_ratings = [mean_ratings;s_end,mean(bin(:,1:2)),max(bin(:,3))];
+            if isempty(bin), continue; end
+            mean_ratings(i,:) = [s_end,mean(bin(:,1)),mean(bin(:,2)),max(bin(:,3))];
         end
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
@@ -279,11 +301,11 @@ end
 function timer_ErrorFcn(~,~,handles)
     handles = guidata(handles.figure_collect);
     global settings;
+    global ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
     msgbox('Timer callback error.','Error','error');
-    disp(handles.rating);
-    csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),handles.rating);
+    csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
     guidata(handles.figure_collect,handles);
 end
 
@@ -292,6 +314,7 @@ end
 function create_axis(handles)
     handles = guidata(handles.figure_collect);
     global settings;
+    global marker;
     axes(handles.axis_circle); cla;
     plot(handles.axis_circle,[-1,1],[0,0],'k-');
     plot(handles.axis_circle,[0,0],[-1,1],'k-');
@@ -303,6 +326,7 @@ function create_axis(handles)
     text(-0.64,-0.64,settings.label6,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.64,-0.64,settings.label7,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.0,-0.9,settings.label8,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    marker = plot(handles.axis_circle,0,0,'ko','LineWidth',2,'MarkerSize',15,'Visible','off');
     guidata(handles.figure_collect,handles);
 end
 
