@@ -20,6 +20,10 @@ function fig_collect
         'Parent',handles.figure_collect, ...
         'Label','Open Multimedia File', ...
         'Callback',@menu_multimedia_Callback);
+    handles.menu_logging = uimenu(handles.figure_collect, ...
+        'Parent',handles.figure_collect, ...
+        'Label','Turn on Logging', ...
+        'Callback',@menu_logging_Callback);
     pause(0.1);
     set(handles.figure_collect,'Position',[0.1 0.1 0.8 0.8]);
     % Create uicontrol elements
@@ -84,6 +88,8 @@ function fig_collect
     % Start system clock to improve VLC time stamp precision
     global global_tic;
     global_tic = tic;
+    global log;
+    log = 0;
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
     guidata(handles.figure_collect,handles);
@@ -127,6 +133,31 @@ function menu_multimedia_Callback(hObject,~)
     set(handles.text_filename,'String',video_name);
     set(handles.text_duration,'String',datestr(handles.dur/24/3600,'HH:MM:SS'));
     set(handles.toggle_playpause,'Enable','On');
+    guidata(hObject,handles);
+end
+
+% =========================================================
+
+function menu_logging_Callback(hObject,~)
+    handles = guidata(hObject);
+    global log;
+    if log==0
+        [file,path] = uiputfile('*.txt','Create a log file',sprintf('%s.txt',datestr(now,30)));
+        if isequal(file,0) || isequal(path,0)
+            return;
+        else
+            diary(fullfile(path,file));
+            set(handles.menu_logging,'Label','Turn off logging');
+            log = 1;
+        end
+    else
+        diary('off');
+        set(handles.menu_logging,'Label','Turn on logging');
+        log = 0;
+        a = msgbox('Logging off');
+        waitfor(a);
+    end
+    uicontrol(handles.toggle_playpause);
     guidata(hObject,handles);
 end
 
@@ -240,8 +271,8 @@ function timer_Callback(~,~,handles)
         % Average ratings per second of playback
         rating = ratings;
         disp(rating);
-        anchors = [0,(1/settings.sps:1/settings.sps:handles.dur)];
-        mean_ratings = repmat(9999,length(anchors)-1,4);
+        anchors = [0,(1/settings.sps:1/settings.sps:floor(handles.dur))];
+        mean_ratings = nan(length(anchors)-1,4);
         mean_ratings(:,1) = anchors(2:end)';
         for i = 1:length(anchors)-1
             s_start = anchors(i);
@@ -249,8 +280,9 @@ function timer_Callback(~,~,handles)
             index = (rating(:,1) >= s_start) & (rating(:,1) < s_end);
             bin = rating(index,2:end);
             if isempty(bin), continue; end
-            mean_ratings(i,:) = [s_end,mean(bin(:,1)),mean(bin(:,2)),max(bin(:,3))];
+            mean_ratings(i,:) = [s_end,nanmean(bin(:,1)),nanmean(bin(:,2)),nanmax(bin(:,3))];
         end
+        disp(mean_ratings);
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
         [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
@@ -352,6 +384,7 @@ end
 
 function figure_collect_CloseReq(hObject,~)
     handles = guidata(hObject);
+    global log;
     % Pause playback and rating
     if handles.vlc.input.state==3,handles.vlc.playlist.togglePause(); end
     if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
@@ -372,6 +405,7 @@ function figure_collect_CloseReq(hObject,~)
         end
     else
         %If ratings are not being collected, exit DARMA
+        if log==1, diary off; end
         delete(handles.timer);
         delete(gcf);
     end
