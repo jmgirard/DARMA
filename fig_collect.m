@@ -125,6 +125,9 @@ function menu_multimedia_Callback(hObject,~)
         handles.vlc.playlist.togglePause();
         handles.vlc.input.time = 0;
         handles.dur = handles.vlc.input.length / 1000;
+        if handles.dur == 0
+            error('Could not read duration of multimedia file.');
+        end
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
     end
