@@ -113,6 +113,7 @@ function fig_review
         'Position',[rc .02 .10 .10], ...
         'String','Play', ...
         'FontSize',16.0, ...
+        'Enable','off', ...
         'Callback',@toggle_playpause_Callback);
     % Invoke and configure WMP ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_review);
@@ -164,6 +165,7 @@ function menu_multimedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         set(handles.axis_X,'PickableParts','visible');
         set(handles.axis_Y,'PickableParts','visible');
+        set(handles.toggle_playpause,'String','Play','Enable','on');
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
     end
@@ -394,18 +396,13 @@ end
 
 function timer2_Callback(~,~,handles)
     handles = guidata(handles.figure_review);
+    global ts_X;
+    global ts_Y;
     if handles.vlc.input.state == 3
         % While playing, update annotations plot
         ts = handles.vlc.input.time/1000;
-        update_plots(handles);
-        axes(handles.axis_X);
-        hold on;
-        plot(handles.axis_X,[ts,ts],[handles.mag,-1*handles.mag],'k');
-        hold off;
-        axes(handles.axis_Y);
-        hold on;
-        plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
-        hold off;
+        set(ts_X,'XData',[ts,ts]);
+        set(ts_Y,'XData',[ts,ts]);
         drawnow();
     elseif handles.vlc.input.state == 6 || handles.vlc.input.state == 5
         % When done, send stop() command to VLC
@@ -424,6 +421,8 @@ end
 
 function axis_click_Callback(hObject,~,axis)
     handles = guidata(hObject);
+    global ts_X;
+    global ts_Y;
     % Jump VLC playback to clicked position
     if strcmp(axis,'X')
         coord = get(handles.axis_X,'CurrentPoint');
@@ -441,15 +440,8 @@ function axis_click_Callback(hObject,~,axis)
     pause(.05);
     % While playing, update annotations plot
     ts = handles.vlc.input.time/1000;
-    update_plots(handles);
-    axes(handles.axis_X);
-    hold on;
-    plot(handles.axis_X,[ts,ts],[handles.mag,-1*handles.mag],'k');
-    hold off;
-    axes(handles.axis_Y);
-    hold on;
-    plot(handles.axis_Y,[ts,ts],[handles.mag,-1*handles.mag],'k');
-    hold off;
+    set(ts_X,'XData',[ts,ts]);
+    set(ts_Y,'XData',[ts,ts]);
     drawnow();
 end
 
@@ -496,27 +488,35 @@ end
 
 function update_plots(handles)
     handles = guidata(handles.figure_review);
+    global ts_X;
+    global ts_Y;
     if isempty(handles.AllRatingsX), return; end
     if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         % Configure first (X) axis for normal plots
         axes(handles.axis_X); cla;
         plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'X'});
+        hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
+        ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
+        hold off;
         % Configure second (Y) axis for normal plots
         axes(handles.axis_Y); cla;
         plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'Y'});
+        hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         handles.CS = get(gca,'ColorOrder');
+        ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
+        hold off;
     elseif get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Max')
-        % Plot each series of ratings in blue and the mean series in red
+        % Configure first (X) axis for mean plots
         axes(handles.axis_X); cla;
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         hold on;
@@ -526,6 +526,9 @@ function update_plots(handles)
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
+        ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
+        hold off;
+        % Configure second (Y) axis for mean plots
         axes(handles.axis_Y); cla;
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         hold on;
@@ -535,6 +538,7 @@ function update_plots(handles)
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
+        ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
     end
     guidata(handles.figure_review,handles);
@@ -570,32 +574,26 @@ end
 % =========================================================
 
 function [box] = reliability( X, Y )
-	x_k = size(X,2);
-	x_alpha = x_k/(x_k-1)*(var(nansum(X'))-nansum(var(X)))/var(nansum(X'));
-    y_k = size(Y,2);
-	y_alpha = y_k/(y_k-1)*(var(nansum(Y'))-nansum(var(Y)))/var(nansum(Y'));
-    
+    % Find and remove rows that contain NaNs
+    index = any(isnan(X),2);
+    X2 = X;
+    Y2 = Y;
+    X2(index,:) = [];
+    Y2(index,:) = [];
+    % Calculate Cronbach's alpha
+	x_k = size(X2,2);
+	x_alpha = x_k/(x_k-1)*(var(sum(X2'))-sum(var(X2)))/var(sum(X2'));
+    y_k = size(Y2,2);
+	y_alpha = y_k/(y_k-1)*(var(sum(Y2'))-sum(var(Y2)))/var(sum(Y2'));
+    % Populate reliability window
     if x_k == 1
-        box = {'# Raters','1'; ...
+        box = { ...
             '[01] X Mean',num2str(nanmean(X),'%.0f'); ...
             '[01] X SD',num2str(nanstd(X),'%.0f'); ...
             '[01] Y Mean',num2str(nanmean(Y),'%.0f'); ...
             '[01] Y SD',num2str(nanstd(Y),'%.0f')};
-    elseif x_k == 2
-        box = {'# Raters','2'; ...
-            'X Alpha',num2str(x_alpha,'%.3f'); ...
-            '[01] X Mean',num2str(nanmean(X(:,1)),'%.0f'); ...
-            '[02] X Mean',num2str(nanmean(X(:,2)),'%.0f'); ...
-            '[01] X SD',num2str(nanstd(X(:,1)),'%.0f'); ...
-            '[02] X SD',num2str(nanstd(X(:,2)),'%.0f'); ...
-            'Y Alpha',num2str(y_alpha,'%.3f'); ...
-            '[01] Y Mean',num2str(nanmean(Y(:,1)),'%.0f'); ...
-            '[02] Y Mean',num2str(nanmean(Y(:,2)),'%.0f'); ...
-            '[01] Y SD',num2str(nanstd(Y(:,1)),'%.0f'); ...
-            '[02] Y SD',num2str(nanstd(Y(:,2)),'%.0f')};
-    elseif x_k > 2
-        box = {'# Raters',num2str(x_k,'%d')};
-        box = [box;{'X Alpha',num2str(x_alpha,'%.3f')}];
+    elseif x_k > 1
+        box = {'X Alpha',num2str(x_alpha,'%.3f')};
         for i = 1:x_k
             box = [box;{sprintf('[%02d] X Mean',i),num2str(nanmean(X(:,i)),'%.0f');}];
         end

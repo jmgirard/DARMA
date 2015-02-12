@@ -126,7 +126,8 @@ function menu_multimedia_Callback(hObject,~)
         handles.vlc.input.time = 0;
         handles.dur = handles.vlc.input.length / 1000;
         if handles.dur == 0
-            error('Could not read duration of multimedia file.');
+            error('Could not read duration of multimedia file. The file meta-data may be damaged. Remuxing the streams (e.g., with HandBrake) may fix this problem.');
+            handles.vlc.playlist.items.clear();
         end
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
