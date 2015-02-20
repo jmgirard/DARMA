@@ -233,6 +233,7 @@ function button_addseries_Callback(hObject,~)
         if filenames==0, return; end
         filenames = {filenames};
     end
+    w = waitbar(0,'Importing annotation files...');
     for f = 1:length(filenames)
         filename = filenames{f};
         [~,~,data] = xlsread(fullfile(pathname,filename));
@@ -260,22 +261,24 @@ function button_addseries_Callback(hObject,~)
             handles.MeanRatingsX = nanmean(handles.AllRatingsX,2);
             handles.MeanRatingsY = nanmean(handles.AllRatingsY,2);
             guidata(hObject,handles);
-            update_plots(handles);
-            % Update list box
-            CS = get(gca,'ColorOrder');
-            rows = {'<html><u>Annotation Files'};
-            for i = 1:size(handles.AllRatingsX,2)
-                colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-                rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
-            end
-            set(handles.listbox,'String',rows,'Value',size(handles.AllRatingsX,2)+1,'ButtonDownFcn',@listbox_Callback);
-            % Update reliability box
-            box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-            set(handles.reliability,'Data',box);
-            listbox_Callback(handles.figure_review,[]);
-            guidata(handles.figure_review,handles);
         end
+        waitbar(f/length(filenames));
     end
+    update_plots(handles);
+    % Update list box
+    CS = get(gca,'ColorOrder');
+    rows = {'<html><u>Annotation Files'};
+    for i = 1:size(handles.AllRatingsX,2)
+        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+    end
+    set(handles.listbox,'String',rows,'Value',size(handles.AllRatingsX,2)+1,'ButtonDownFcn',@listbox_Callback);
+    % Update reliability box
+    box = reliability(handles.AllRatingsX,handles.AllRatingsY);
+    set(handles.reliability,'Data',box);
+    listbox_Callback(handles.figure_review,[]);
+    guidata(handles.figure_review,handles);
+    delete(w);
     set(handles.toggle_meanplot,'Enable','on');
     set(handles.menu_export,'Enable','on');
     guidata(handles.figure_review,handles);
@@ -285,6 +288,10 @@ end
 
 function button_delseries_Callback(hObject,~)
     handles = guidata(hObject);
+    if get(handles.toggle_meanplot,'Value')==1
+        msgbox('Please turn off mean plotting before removing annotation files.');
+        return;
+    end
     % Get currently selected item
     index = get(handles.listbox,'Value')-1;
     % Cancel if the first row is selected
@@ -482,6 +489,8 @@ function listbox_Callback(hObject,~)
         axis square;
         set(h,'FaceAlpha',10/size(dataX,1),'EdgeColor','none');
     end
+    text(900,0,handles.labelX,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5,'Rotation',-90);
+    text(0,900,handles.labelY,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
 end
 
 % ===============================================================================
@@ -593,14 +602,13 @@ function [box] = reliability( X, Y )
             '[01] Y Mean',num2str(nanmean(Y),'%.0f'); ...
             '[01] Y SD',num2str(nanstd(Y),'%.0f')};
     elseif x_k > 1
-        box = {'X Alpha',num2str(x_alpha,'%.3f')};
+        box = {'X Alpha',num2str(x_alpha,'%.3f');'Y Alpha',num2str(y_alpha,'%.3f')};
         for i = 1:x_k
             box = [box;{sprintf('[%02d] X Mean',i),num2str(nanmean(X(:,i)),'%.0f');}];
         end
         for i = 1:x_k
             box = [box;{sprintf('[%02d] X SD',i),num2str(nanstd(X(:,i)),'%.0f');}];
         end
-        box = [box;{'Y Alpha',num2str(y_alpha,'%.3f')}];
         for i = 1:y_k
             box = [box;{sprintf('[%02d] Y Mean',i),num2str(nanmean(Y(:,i)),'%.0f');}];
         end
