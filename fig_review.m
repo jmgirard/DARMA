@@ -22,12 +22,19 @@ function fig_review
         'Callback',@menu_multimedia_Callback);
     handles.menu_addseries = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
-        'Label','Add Annotation File', ...
+        'Label','Add Annotation File(s)', ...
         'Callback',@button_addseries_Callback);
     handles.menu_delseries = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
-        'Label','Remove Annotation File', ...
-        'Callback',@button_delseries_Callback);
+        'Label','Remove Annotation Files');
+    handles.menu_delall = uimenu(handles.menu_delseries, ...
+        'Parent',handles.menu_delseries, ...
+        'Label','Remove All Files', ...
+        'Callback',@menu_delall_Callback);
+    handles.menu_delone = uimenu(handles.menu_delseries, ...
+        'Parent',handles.menu_delseries, ...
+        'Label','Remove Selected File', ...
+        'Callback',@button_delone_Callback);
     handles.menu_export = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Export Mean Ratings', ...
@@ -75,7 +82,7 @@ function fig_review
         'String','–', ...
         'FontSize',16, ...
         'TooltipString','Remove Annotation File', ...
-        'Callback',@button_delseries_Callback);
+        'Callback',@button_delone_Callback);
     handles.toggle_meanplot = uicontrol('Style','togglebutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
@@ -174,6 +181,39 @@ end
 
 % ===============================================================================
 
+function menu_delall_Callback(hObject,~)
+    handles = guidata(hObject);
+    if get(handles.toggle_meanplot,'Value')==1
+        msgbox('Please turn off mean plotting before removing annotation files.');
+        return;
+    end
+    handles.AllRatingsX = zeros(0,1);
+    handles.AllRatingsY = zeros(0,1);
+    handles.MeanRatingsX = zeros(0,1);
+    handles.MeanRatingsY = zeros(0,1);
+    handles.AllFilenames = cell(0,1);
+    handles.mag = zeros(0,1);
+    cla(handles.axis_X);
+    cla(handles.axis_Y);
+    cla(handles.axis_C);
+    set(handles.axis_X,'PickableParts','none');
+    set(handles.axis_Y,'PickableParts','none');
+    % Update list box
+    set(handles.listbox,'Value',1);
+    CS = get(gca,'ColorOrder');
+    rows = {'<html><u>Annotation Files'};
+    box = '';
+    set(handles.toggle_meanplot,'Enable','off','Value',0);
+    set(handles.menu_export,'Enable','off');
+    set(handles.listbox,'String',rows);
+    set(handles.reliability,'Data',box);
+    listbox_Callback(handles.listbox,[]);
+    % Update guidata with handles
+    guidata(handles.figure_review,handles);
+end
+
+% ===============================================================================
+
 function menu_export_Callback(hObject,~)
     handles = guidata(hObject);
     global settings;
@@ -226,6 +266,10 @@ end
 
 function button_addseries_Callback(hObject,~)
     handles = guidata(hObject);
+    if get(handles.toggle_meanplot,'Value')==1
+        msgbox('Please turn off mean plotting before adding annotation files.');
+        return;
+    end
     global settings;
     % Prompt user for import file.
     [filenames,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','DARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
@@ -286,7 +330,7 @@ end
 
 % ===============================================================================
 
-function button_delseries_Callback(hObject,~)
+function button_delone_Callback(hObject,~)
     handles = guidata(hObject);
     if get(handles.toggle_meanplot,'Value')==1
         msgbox('Please turn off mean plotting before removing annotation files.');
