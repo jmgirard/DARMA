@@ -61,7 +61,7 @@ function fig_launcher
     axctl = actxcontrollist;
     index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
     if sum(index)==0
-        choice = questdlg('DARMA requires the free, open source VLC media player. Open download page?',...
+        choice = questdlg('DARMA requires the free, open source VLC Media Player (64-bit). Open download page?',...
             'DARMA','Yes','No','Yes');
         switch choice
             case 'Yes'
