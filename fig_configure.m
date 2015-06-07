@@ -21,14 +21,15 @@ function fig_configure
         'Parent',handles.figure_configure, ...
         'Units','normalized', ...
         'Position',[.6 .025 .3 .05], ...
-        'String','Submit Changes', ...
+        'String','Apply Current Settings', ...
+        'FontWeight','bold', ...
         'Callback',@push_submit_Callback);
-    handles.push_cancel = uicontrol(...
+    handles.push_default = uicontrol(...
         'Parent',handles.figure_configure, ...
         'Units','normalized', ...
         'Position',[.1 .025 .3 .05], ...
-        'String','Cancel Changes', ...
-        'Callback','delete(gcf); return;');
+        'String','Save as Default Settings', ...
+        'Callback',@push_default_Callback);
     %Left Panel
     panel_left = uipanel(...
         'Parent',handles.figure_configure, ...
@@ -327,19 +328,27 @@ end
 
 % ===============================================================================
 
-function push_clear_Callback(hObject,~)
+function push_default_Callback(hObject,~)
     handles = guidata(hObject);
-    set(handles.edit_labelX,'string','');
-    set(handles.edit_labelY,'string','');
-    set(handles.edit_label1,'string','');
-    set(handles.edit_label2,'string','');
-    set(handles.edit_label3,'string','');
-    set(handles.edit_label4,'string','');
-    set(handles.edit_label5,'string','');
-    set(handles.edit_label6,'string','');
-    set(handles.edit_label7,'string','');
-    set(handles.edit_label8,'string','');
-    guidata(handles.figure_configure,handles);
+    settings.mag = str2double(get(get(handles.bgroup_mag,'SelectedObject'),'string'));
+    settings.sps = str2double(get(get(handles.bgroup_sps,'SelectedObject'),'string'));
+    settings.folder = get(handles.edit_folder,'string');
+    settings.labelX = get(handles.edit_labelX,'string');
+    settings.labelY = get(handles.edit_labelY,'string');
+    settings.label1 = get(handles.edit_label1,'string');
+    settings.label2 = get(handles.edit_label2,'string');
+    settings.label3 = get(handles.edit_label3,'string');
+    settings.label4 = get(handles.edit_label4,'string');
+    settings.label5 = get(handles.edit_label5,'string');
+    settings.label6 = get(handles.edit_label6,'string');
+    settings.label7 = get(handles.edit_label7,'string');
+    settings.label8 = get(handles.edit_label8,'string');
+    if isdeployed
+        save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
+    else
+        save('default.mat','settings');
+    end
+    msgbox('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.');
 end
 
 % ===============================================================================

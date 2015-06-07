@@ -193,21 +193,19 @@ function menu_delall_Callback(hObject,~)
     handles.MeanRatingsY = zeros(0,1);
     handles.AllFilenames = cell(0,1);
     handles.mag = zeros(0,1);
+    cla(handles.axis_C);
     cla(handles.axis_X);
     cla(handles.axis_Y);
-    cla(handles.axis_C);
     set(handles.axis_X,'PickableParts','none');
     set(handles.axis_Y,'PickableParts','none');
     % Update list box
     set(handles.listbox,'Value',1);
-    CS = get(gca,'ColorOrder');
     rows = {'<html><u>Annotation Files'};
     box = '';
     set(handles.toggle_meanplot,'Enable','off','Value',0);
     set(handles.menu_export,'Enable','off');
     set(handles.listbox,'String',rows);
     set(handles.reliability,'Data',box);
-    listbox_Callback(handles.listbox,[]);
     % Update guidata with handles
     guidata(handles.figure_review,handles);
 end
@@ -316,11 +314,11 @@ function button_addseries_Callback(hObject,~)
         colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
         rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',fx_rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
     end
-    set(handles.listbox,'String',rows,'Value',size(handles.AllRatingsX,2)+1,'ButtonDownFcn',@listbox_Callback);
+    set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
     % Update reliability box
     box = reliability(handles.AllRatingsX,handles.AllRatingsY);
     set(handles.reliability,'Data',box);
-    listbox_Callback(handles.figure_review,[]);
+    plot_centroids(handles.figure_review,[]);
     guidata(handles.figure_review,handles);
     delete(w);
     set(handles.toggle_meanplot,'Enable','on');
@@ -502,7 +500,7 @@ function listbox_Callback(hObject,~)
     handles = guidata(hObject);
     val = get(handles.listbox,'value')-1;
     cla(handles.axis_C);
-    if val == 0, return; end
+    if val == 0, plot_centroids(hObject); return; end
     set(handles.axis_C,'XLim',[-1*handles.mag,handles.mag],'YLim',[-1*handles.mag,handles.mag]);
     axes(handles.axis_C);
     CS = get(gca,'ColorOrder');
@@ -532,6 +530,34 @@ function listbox_Callback(hObject,~)
         h = fill(X,Y,col);
         axis square;
         set(h,'FaceAlpha',10/size(dataX,1),'EdgeColor','none');
+    end
+    text(900,0,handles.labelX,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5,'Rotation',-90);
+    text(0,900,handles.labelY,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+end
+
+% ===============================================================================
+function plot_centroids(hObject,~)
+    handles = guidata(hObject);
+    cla(handles.axis_C);
+    set(handles.axis_C,'XLim',[-1*handles.mag,handles.mag],'YLim',[-1*handles.mag,handles.mag]);
+    axes(handles.axis_C);
+    CS = get(gca,'ColorOrder');
+    for i = 1:size(handles.AllRatingsX,2)
+        dataX = handles.AllRatingsX(:,i);
+        dataY = handles.AllRatingsY(:,i);
+        c  = 15; %scalar multiplier
+        a  = c * 1.96*(nanstd(dataX)/sqrt(size(dataX,1))); %horizontal radius
+        b  = c * 1.96*(nanstd(dataY)/sqrt(size(dataY,1))); %vertical radius
+        x0 = nanmean(dataX); % x0,y0 ellipse centre coordinates
+        y0 = nanmean(dataY);
+        t  = -pi:0.01:pi;
+        x  = x0 + a*cos(t);
+        y  = y0 + b*sin(t);
+        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+        col = CS(colorindex,:);
+        h = fill(x,y,col);
+        axis square;
+        set(h,'FaceAlpha',1/3,'EdgeColor','none');
     end
     text(900,0,handles.labelX,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5,'Rotation',-90);
     text(0,900,handles.labelY,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
@@ -633,11 +659,8 @@ function [box] = reliability( X, Y )
     Y2 = Y;
     X2(index,:) = [];
     Y2(index,:) = [];
-    % Calculate Cronbach's alpha
 	x_k = size(X2,2);
-	x_alpha = x_k/(x_k-1)*(var(sum(X2'))-sum(var(X2)))/var(sum(X2'));
     y_k = size(Y2,2);
-	y_alpha = y_k/(y_k-1)*(var(sum(Y2'))-sum(var(Y2)))/var(sum(Y2'));
     % Populate reliability window
     if x_k == 1
         box = { ...
@@ -646,7 +669,10 @@ function [box] = reliability( X, Y )
             '[01] Y Mean',num2str(nanmean(Y),'%.0f'); ...
             '[01] Y SD',num2str(nanstd(Y),'%.0f')};
     elseif x_k > 1
-        box = {'X Alpha',num2str(x_alpha,'%.3f');'Y Alpha',num2str(y_alpha,'%.3f')};
+        box = {'X ICC(A,1)',num2str(fx_ICC(X2,'A-1'),'%.3f'); ...
+            'Y ICC(A,1)',num2str(fx_ICC(Y2,'A-1'),'%.3f'); ...
+            'X ICC(A,k)',num2str(fx_ICC(X2,'A-k'),'%.3f'); ...
+            'Y ICC(A,k)',num2str(fx_ICC(Y2,'A-k'),'%.3f')};
         for i = 1:x_k
             box = [box;{sprintf('[%02d] X Mean',i),num2str(nanmean(X(:,i)),'%.0f');}];
         end

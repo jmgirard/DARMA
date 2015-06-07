@@ -23,10 +23,9 @@ function fig_launcher
         'Box','on','XTick',[],'YTick',[],...
         'ButtonDownFcn',@website);
     xlim([-1 1]); ylim([-1 1]);
-    text(0,0,'DARMA v3.08','Color',[1 1 1],'FontSize',42,...
+    text(0,0,'DARMA v4.00','Color',[1 1 1],'FontSize',42,...
         'FontName','cambria','HorizontalAlignment','center',...
         'ButtonDownFcn',@website);
-    %TODO: Set 'cdata' to a resized image for each button
     handles.push_collect = uicontrol('Style','pushbutton', ...
         'Parent',handles.figure_launcher, ...
         'Units','Normalized', ...
@@ -53,19 +52,11 @@ function fig_launcher
     guidata(handles.figure_launcher,handles);
     % Configure default settings
     global settings;
-    settings.mag = 1000;
-    settings.sps = 2;
-    settings.folder = '';
-    settings.labelX = 'Communion';
-    settings.labelY = 'Agency';
-    settings.label1 = 'Dominant';
-    settings.label2 = 'Disagreeable';
-    settings.label3 = 'Extraverted';
-    settings.label4 = 'Separate';
-    settings.label5 = 'Friendly';
-    settings.label6 = 'Introverted';
-    settings.label7 = 'Agreeable';
-    settings.label8 = 'Submissive';
+    if isdeployed
+        settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
+    else
+        settings = importdata('default.mat');
+    end
     % Check that VLC is installed
     axctl = actxcontrollist;
     index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
