@@ -545,9 +545,8 @@ function plot_centroids(hObject,~)
     for i = 1:size(handles.AllRatingsX,2)
         dataX = handles.AllRatingsX(:,i);
         dataY = handles.AllRatingsY(:,i);
-        c  = 15; %scalar multiplier
-        a  = c * 1.96*(nanstd(dataX)/sqrt(size(dataX,1))); %horizontal radius
-        b  = c * 1.96*(nanstd(dataY)/sqrt(size(dataY,1))); %vertical radius
+        a  = 2*(nanstd(dataX)); %horizontal radius
+        b  = 2*(nanstd(dataY)); %vertical radius
         x0 = nanmean(dataX); % x0,y0 ellipse centre coordinates
         y0 = nanmean(dataY);
         t  = -pi:0.01:pi;
@@ -558,6 +557,16 @@ function plot_centroids(hObject,~)
         h = fill(x,y,col);
         axis square;
         set(h,'FaceAlpha',1/3,'EdgeColor','none');
+        plot(x0,y0,'o','MarkerFaceColor',col,'MarkerEdgeColor',[0 0 0],'MarkerSize',10);
+    end
+    for i = 1:size(handles.AllRatingsX,2)
+        dataX = handles.AllRatingsX(:,i);
+        dataY = handles.AllRatingsY(:,i);
+        x0 = nanmean(dataX); % x0,y0 ellipse centre coordinates
+        y0 = nanmean(dataY);
+        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+        col = CS(colorindex,:);
+        plot(x0,y0,'o','MarkerFaceColor',col,'MarkerEdgeColor',[0 0 0],'MarkerSize',10);
     end
     text(900,0,handles.labelX,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5,'Rotation',-90);
     text(0,900,handles.labelY,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
