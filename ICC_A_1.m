@@ -16,7 +16,7 @@ function [ICC,LB,UB] = ICC_A_1(DATA,ALPHA)
 %
 %   Reference: McGraw, K. O., & Wong, S. P. (1996).
 %   Forming inferences about some intraclass correlation coefficients. 
-%   Psychological Methods, 1(1), 30–46.
+%   Psychological Methods, 1(1), 30-46.
 
 %% Calculate descriptive statistics
 [n,k] = size(DATA);
