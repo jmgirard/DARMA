@@ -270,7 +270,7 @@ function button_addseries_Callback(hObject,~)
     end
     global settings;
     % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.xls; *.xlsx; *.csv','DARMA Export Formats (*.xls, *.xlsx, *.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
+    [filenames,pathname] = uigetfile({'*.csv','Comma Separated Values (*.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
     if ~iscell(filenames)
         if filenames==0, return; end
         filenames = {filenames};
@@ -278,25 +278,33 @@ function button_addseries_Callback(hObject,~)
     w = waitbar(0,'Importing annotation files...');
     for f = 1:length(filenames)
         filename = filenames{f};
-        [~,~,data] = xlsread(fullfile(pathname,filename));
+        fileID = fopen(fullfile(pathname,filename),'r');
+        mag = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
+        fclose(fileID);
+        fileID = fopen(fullfile(pathname,filename),'r');
+        labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
+        fclose(fileID);
+        fileID = fopen(fullfile(pathname,filename),'r');
+        data = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
+        fclose(fileID);
         % Get settings from import file    
         if isempty(handles.mag)
-            handles.mag = data{3,2};
-            handles.labelX = data{4,2};
-            handles.labelY = data{4,3};
-        elseif handles.mag ~= data{3,2}
+            handles.mag = mag{1};
+            handles.labelX = labels{1}{1};
+            handles.labelY = labels{2}{1};
+        elseif handles.mag ~= mag{1}
             msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
             return;
         end
         % Check that the import file matches the multimedia file
-        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data(6:end,:),1)
+        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data{:,1},1)
             msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
             return;
         else
             % Append the new file to the stored data
-            handles.Seconds = cell2mat(data(6:end,1));
-            handles.AllRatingsX = [handles.AllRatingsX,cell2mat(data(6:end,2))];
-            handles.AllRatingsY = [handles.AllRatingsY,cell2mat(data(6:end,3))];
+            handles.Seconds = data{:,1};
+            handles.AllRatingsX = [handles.AllRatingsX,data{:,2}];
+            handles.AllRatingsY = [handles.AllRatingsY,data{:,3}];
             [~,fn,~] = fileparts(filename);
             handles.AllFilenames = [handles.AllFilenames;fn];
             % Update mean series

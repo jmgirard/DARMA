@@ -289,9 +289,7 @@ function timer_Callback(~,~,handles)
         disp(mean_ratings);
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
-        [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
-            '*.xls','Excel 2003 Spreadsheet (*.xls)';...
-            '*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
+        [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
         if ~isequal(filename,0) && ~isequal(pathname,0)
             % Add metadata to mean ratings and timestamps
             output = [ ...
@@ -302,20 +300,7 @@ function timer_Callback(~,~,handles)
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
-            [fname,~,ext] = fileparts(filename);
-            if strcmpi(ext,'.XLS') || strcmpi(ext,'.XLSX')
-                % Create XLS/XLSX file if that is the selected file type
-                [success,message] = xlswrite(fullfile(pathname,filename),output);
-                if strcmp(message.identifier,'MATLAB:xlswrite:dlmwrite')
-                    % If Excel is not installed, create CSV file instead
-                    serror = errordlg('Exporting to .XLS/.XLSX requires Microsoft Excel to be installed. DARMA will now export to .CSV instead.');
-                    uiwait(serror);
-                    success = fx_cell2csv(fullfile(pathname,fname),output);
-                end
-            elseif strcmpi(ext,'.CSV')
-                % Create CSV file if that is the selected file type
-                success = fx_cell2csv(fullfile(pathname,filename),output);
-            end
+            success = fx_cell2csv(fullfile(pathname,filename),output);
             % Report saving success or failure
             if success
                 h = msgbox('Export successful.');
