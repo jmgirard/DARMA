@@ -302,7 +302,7 @@ function timer_Callback(~,~,handles)
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
-            [~,~,ext] = fileparts(filename);
+            [fname,~,ext] = fileparts(filename);
             if strcmpi(ext,'.XLS') || strcmpi(ext,'.XLSX')
                 % Create XLS/XLSX file if that is the selected file type
                 [success,message] = xlswrite(fullfile(pathname,filename),output);
@@ -310,7 +310,7 @@ function timer_Callback(~,~,handles)
                     % If Excel is not installed, create CSV file instead
                     serror = errordlg('Exporting to .XLS/.XLSX requires Microsoft Excel to be installed. DARMA will now export to .CSV instead.');
                     uiwait(serror);
-                    success = fx_cell2csv(fullfile(pathname,filename),output);
+                    success = fx_cell2csv(fullfile(pathname,fname),output);
                 end
             elseif strcmpi(ext,'.CSV')
                 % Create CSV file if that is the selected file type
