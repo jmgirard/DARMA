@@ -328,6 +328,23 @@ end
 
 % ===============================================================================
 
+function push_clear_Callback(hObject,~)
+    handles = guidata(hObject);
+    set(handles.edit_labelX,'string','');
+    set(handles.edit_labelY,'string','');
+    set(handles.edit_label1,'string','');
+    set(handles.edit_label2,'string','');
+    set(handles.edit_label3,'string','');
+    set(handles.edit_label4,'string','');
+    set(handles.edit_label5,'string','');
+    set(handles.edit_label6,'string','');
+    set(handles.edit_label7,'string','');
+    set(handles.edit_label8,'string','');
+    guidata(handles.figure_configure,handles);
+end
+
+% ===============================================================================
+
 function push_default_Callback(hObject,~)
     handles = guidata(hObject);
     settings.mag = str2double(get(get(handles.bgroup_mag,'SelectedObject'),'string'));
