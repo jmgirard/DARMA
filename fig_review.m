@@ -302,7 +302,7 @@ function button_addseries_Callback(hObject,~)
     end
     global settings;
     % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.csv','Comma Separated Values (*.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
+    [filenames,pathname] = uigetfile({'*.xlsx;*.xls;*.csv','DARMA Annotations (*.xlsx, *.xls, *.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
     if ~iscell(filenames)
         if filenames==0, return; end
         filenames = {filenames};
@@ -310,33 +310,46 @@ function button_addseries_Callback(hObject,~)
     w = waitbar(0,'Importing annotation files...');
     for f = 1:length(filenames)
         filename = filenames{f};
-        fileID = fopen(fullfile(pathname,filename),'r');
-        mag = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
-        fclose(fileID);
-        fileID = fopen(fullfile(pathname,filename),'r');
-        labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
-        fclose(fileID);
-        fileID = fopen(fullfile(pathname,filename),'r');
-        data = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
-        fclose(fileID);
+        [~,~,ext] = fileparts(filename);
+        if strcmp(ext,'.csv')
+            fileID = fopen(fullfile(pathname,filename),'r');
+            magcell = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
+            mag = magcell{1};
+            fclose(fileID);
+            fileID = fopen(fullfile(pathname,filename),'r');
+            labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
+            labelX = labels{1}{1};
+            labelY = labels{2}{1};
+            fclose(fileID);
+            fileID = fopen(fullfile(pathname,filename),'r');
+            datacell = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
+            data = [datacell{:,1},datacell{:,2},datacell{:,3}];
+            fclose(fileID);
+        else
+            [nums,txts] = xlsread(fullfile(pathname,filename),'','','basic');
+            mag = nums(3,2);
+            labelX = txts{4,2};
+            labelY = txts{4,3};
+            data = nums(6:end,1:3);
+        end
         % Get settings from import file    
         if isempty(handles.mag)
-            handles.mag = mag{1};
-            handles.labelX = labels{1}{1};
-            handles.labelY = labels{2}{1};
-        elseif handles.mag ~= mag{1}
+            handles.mag = mag;
+            handles.labelX = labelX;
+            handles.labelY = labelY;
+        elseif handles.mag ~= mag
             msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
             return;
         end
         % Check that the import file matches the multimedia file
-        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data{:,1},1)
+        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data,1)
             msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
             return;
         else
             % Append the new file to the stored data
-            handles.Seconds = data{:,1};
-            handles.AllRatingsX = [handles.AllRatingsX,data{:,2}];
-            handles.AllRatingsY = [handles.AllRatingsY,data{:,3}];
+            handles.Seconds = data(:,1);
+            handles.AllRatingsX = [handles.AllRatingsX,data(:,2)];
+            handles.AllRatingsY = [handles.AllRatingsY,data(:,3)];
             [~,fn,~] = fileparts(filename);
             handles.AllFilenames = [handles.AllFilenames;fn];
             % Update mean series

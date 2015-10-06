@@ -289,7 +289,7 @@ function timer_Callback(~,~,handles)
         disp(mean_ratings);
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
-        [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
+        [filename,pathname] = uiputfile({'*.xlsx;*.xls;*.csv','DARMA Annotations (*.xlsx, *.xls, *.csv)'},'Save as',fullfile(settings.folder,defaultname));
         if ~isequal(filename,0) && ~isequal(pathname,0)
             % Add metadata to mean ratings and timestamps
             output = [ ...
@@ -300,7 +300,18 @@ function timer_Callback(~,~,handles)
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
-            success = fx_cell2csv(fullfile(pathname,filename),output);
+            [~,~,ext] = fileparts(filename);
+            if strcmpi(ext,'.csv')
+                success = fx_cell2csv(fullfile(pathname,filename),output);
+            else
+                javaaddpath('poi_library/poi-3.8-20120326.jar');
+                javaaddpath('poi_library/poi-ooxml-3.8-20120326.jar');
+                javaaddpath('poi_library/poi-ooxml-schemas-3.8-20120326.jar');
+                javaaddpath('poi_library/xmlbeans-2.3.0.jar');
+                javaaddpath('poi_library/dom4j-1.6.1.jar');
+                javaaddpath('poi_library/stax-api-1.0.1.jar');
+                success = xlwrite(fullfile(pathname,filename),output);
+            end
             % Report saving success or failure
             if success
                 h = msgbox('Export successful.');
