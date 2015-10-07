@@ -292,7 +292,7 @@ function button_addseries_Callback(hObject,~)
     end
     global settings;
     % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.xlsx;*.xls;*.csv','DARMA Annotations (*.xlsx, *.xls, *.csv)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
+    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
     if ~iscell(filenames)
         if filenames==0, return; end
         filenames = {filenames};
