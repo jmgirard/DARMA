@@ -46,6 +46,7 @@ function fig_review
     handles.menu_agree = uimenu(handles.menu_stats, ...
         'Parent',handles.menu_stats, ...
         'Label','Agreement ICC', ...
+        'Checked','on', ...
         'Callback',@menu_agree_Callback);
     handles.menu_consist = uimenu(handles.menu_stats, ...
         'Parent',handles.menu_stats, ...
@@ -241,25 +242,10 @@ function menu_export_Callback(hObject,~)
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
     %Prompt user for output filepath
-    [filename,pathname] = uiputfile({'*.xlsx','Excel 2007 Spreadsheet (*.xlsx)';...
-        '*.xls','Excel 2003 Spreadsheet (*.xls)';...
-        '*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
+    [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
     if isequal(filename,0), return; end
-    % Create export file depending on selected file type
-    [~,~,ext] = fileparts(filename);
-    if strcmpi(ext,'.XLS') || strcmpi(ext,'.XLSX')
-        % Create XLS/XLSX file if that is the selected file type
-        [success,message] = xlswrite(fullfile(pathname,filename),output);
-        if strcmp(message.identifier,'MATLAB:xlswrite:dlmwrite')
-            % If Excel is not installed, create CSV file instead
-            serror = errordlg('Exporting to .XLS/.XLSX requires Microsoft Excel to be installed. DARMA will now export to .CSV instead.');
-            uiwait(serror);
-            success = fx_cell2csv(fullfile(pathname,filename),output);
-        end
-    elseif strcmpi(ext,'.CSV')
-        % Create CSV file if that is the selected file type
-        success = fx_cell2csv(fullfile(pathname,filename),output);
-    end
+    % Create export file as a CSV
+    success = fx_cell2csv(fullfile(pathname,filename),output);
     % Report saving success or failure
     if success
         h = msgbox('Export successful.');
@@ -278,6 +264,8 @@ function menu_agree_Callback(hObject,~)
     stats = 'agree';
     box = reliability(handles.AllRatingsX,handles.AllRatingsY);
     set(handles.reliability,'Data',box);
+    set(handles.menu_agree,'Checked','on');
+    set(handles.menu_consist,'Checked','off');
     guidata(handles.figure_review,handles);
 end
 
@@ -289,6 +277,8 @@ function menu_consist_Callback(hObject,~)
     stats = 'consist';
     box = reliability(handles.AllRatingsX,handles.AllRatingsY);
     set(handles.reliability,'Data',box);
+    set(handles.menu_agree,'Checked','off');
+    set(handles.menu_consist,'Checked','on');
     guidata(handles.figure_review,handles);
 end
 
