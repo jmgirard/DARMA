@@ -94,6 +94,7 @@ function fig_collect
     handles.figure_collect.Visible = 'on';
     guidata(handles.figure_collect,handles);
     create_axis(handles);
+    addpath('Functions');
 end
 
 % =========================================================
@@ -300,7 +301,7 @@ function timer_Callback(~,~,handles)
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
-            success = fx_cell2csv(fullfile(pathname,filename),output);
+            success = cell2csv(fullfile(pathname,filename),output);
             % Report saving success or failure
             if success
                 h = msgbox('Export successful.');
