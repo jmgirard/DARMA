@@ -128,7 +128,7 @@ function menu_multimedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         if handles.dur == 0
             handles.vlc.playlist.items.clear();
-            error('Could not read duration of multimedia file. The file meta-data may be damaged. Remuxing the streams (e.g., with HandBrake) may fix this problem.');
+            error('Could not read duration of multimedia file. The file meta-data may be damaged. Transcoding the streams (e.g., with HandBrake) may fix this problem.');
         end
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
@@ -320,13 +320,14 @@ end
 
 % =========================================================
 
-function timer_ErrorFcn(~,~,handles)
+function timer_ErrorFcn(~,event,handles)
+    disp(event);
     handles = guidata(handles.figure_collect);
     global settings;
     global ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
-    msgbox('Timer callback error.','Error','error');
+    msgbox(sprintf('Timer callback error:\n%s',event),'Error','error');
     csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
     guidata(handles.figure_collect,handles);
 end
