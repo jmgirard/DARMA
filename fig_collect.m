@@ -267,7 +267,7 @@ function timer_Callback(~,~,handles)
         % Average ratings per second of playback
         rating = ratings;
         disp(rating);
-        anchors = [0,(1/settings.sps:1/settings.sps:floor(handles.dur))];
+        anchors = [0,(settings.bin:settings.bin:floor(handles.dur))];
         mean_ratings = nan(length(anchors)-1,4);
         mean_ratings(:,1) = anchors(2:end)';
         for i = 1:length(anchors)-1
