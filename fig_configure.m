@@ -399,7 +399,7 @@ function push_default_Callback(hObject,~)
     else
         save('default.mat','settings');
     end
-    msgbox('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.');
+    msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
 end
 
 % ===============================================================================

@@ -573,7 +573,7 @@ function listbox_Callback(hObject,~)
         Y = Y+dataY(i);
         h = fill(X,Y,col);
         axis square;
-        set(h,'FaceAlpha',10/size(dataX,1),'EdgeColor','none');
+        set(h,'FaceAlpha',min([size(dataX,1),10])/size(dataX,1),'EdgeColor','none');
     end
     text(900,0,handles.labelX,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5,'Rotation',-90);
     text(0,900,handles.labelY,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
