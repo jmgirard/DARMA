@@ -86,9 +86,8 @@ function fig_collect
         'TimerFcn',{@timer_Callback,handles}, ...
         'ErrorFcn',{@timer_ErrorFcn,handles});
     % Start system clock to improve VLC time stamp precision
-    global global_tic;
+    global global_tic log;
     global_tic = tic;
-    global log;
     log = 0;
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
@@ -103,10 +102,7 @@ function menu_multimedia_Callback(hObject,~)
     handles = guidata(hObject);
     % Reset the GUI elements
     program_reset(handles);
-    global settings;
-    global ratings;
-    global last_ts_vlc;
-    global last_ts_sys;
+    global settings ratings last_ts_vlc last_ts_sys;
     ratings = [];
     last_ts_vlc = 0;
     last_ts_sys = 0;
@@ -218,12 +214,7 @@ end
 
 function timer_Callback(~,~,handles)
     handles = guidata(handles.figure_collect);
-    global settings;
-    global ratings;
-    global last_ts_vlc;
-    global last_ts_sys;
-    global global_tic;
-    global marker;
+    global settings ratings last_ts_vlc last_ts_sys global_tic marker;
     % Before playing
     if handles.recording==0
         try
@@ -323,8 +314,7 @@ end
 function timer_ErrorFcn(~,event,handles)
     disp(event);
     handles = guidata(handles.figure_collect);
-    global settings;
-    global ratings;
+    global settings ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
     msgbox(sprintf('Timer callback error:\n%s',event),'Error','error');
@@ -336,8 +326,7 @@ end
 
 function create_axis(handles)
     handles = guidata(handles.figure_collect);
-    global settings;
-    global marker;
+    global settings marker;
     axes(handles.axis_circle); cla;
     plot(handles.axis_circle,[-1,1],[0,0],'k-');
     plot(handles.axis_circle,[0,0],[-1,1],'k-');
