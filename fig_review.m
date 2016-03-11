@@ -111,7 +111,7 @@ function fig_review
         'ColumnName',[], ...
         'RowName',[], ...
         'Data',[], ...
-        'FontSize',8);
+        'FontSize',10);
     handles.axis_guide = axes('Units','normalized', ...
         'Parent',handles.figure_review, ...
         'Position',[lc*2 .42 .50 .565], ...
@@ -182,8 +182,6 @@ function menu_multimedia_Callback(hObject,~)
         handles.vlc.playlist.togglePause();
         handles.vlc.input.time = 0;
         handles.dur = handles.vlc.input.length / 1000;
-        set(handles.axis_X,'PickableParts','visible');
-        set(handles.axis_Y,'PickableParts','visible');
         set(handles.toggle_playpause,'String','Play','Enable','on');
     catch err
         msgbox(err.message,'Error loading multimedia file.'); return;
@@ -334,7 +332,7 @@ function button_addseries_Callback(hObject,~)
         end
         % Check that the import file matches the multimedia file
         if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data,1)
-            msgbox('Annotation file must have the same sampling rate as the other annotation files.','Error','Error');
+            msgbox('Annotation file must have the same bin size as the other annotation files.','Error','Error');
             return;
         else
             % Append the new file to the stored data
