@@ -53,7 +53,7 @@ function fig_collect
         'String','Play', ...
         'FontSize',14.0, ...
         'Callback',@toggle_playpause_Callback, ...
-        'Enable','inactive');
+        'Enable','off');
     handles.axis_guide = axes('Units','normalized', ...
         'Parent',handles.figure_collect, ...
         'Position',[.01 .09 .63 .89], ...
@@ -86,14 +86,16 @@ function fig_collect
         'TimerFcn',{@timer_Callback,handles}, ...
         'ErrorFcn',{@timer_ErrorFcn,handles});
     % Start system clock to improve VLC time stamp precision
-    global global_tic log;
+    global global_tic log recording;
     global_tic = tic;
     log = 0;
+    recording = 0;
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
     guidata(handles.figure_collect,handles);
     create_axis(handles);
     addpath('Functions');
+    start(handles.timer);
 end
 
 % =========================================================
@@ -166,13 +168,13 @@ end
 
 function figure_collect_KeyPress(hObject,eventdata)
     handles = guidata(hObject);
+    global recording;
     % Escape if the playpause button is disabled
     if strcmp(get(handles.toggle_playpause,'enable'),'inactive'), return; end
     % Pause playback if the pressed key is spacebar
     if strcmp(eventdata.Key,'space') && get(handles.toggle_playpause,'value')
         handles.vlc.playlist.togglePause();
-        stop(handles.timer);
-        handles.recording = 0;
+        recording = 0;
         set(handles.toggle_playpause,'String','Resume','Value',0);
     else
         return;
@@ -184,27 +186,24 @@ end
 
 function toggle_playpause_Callback(hObject,~)
     handles = guidata(hObject);
+    global recording;
     if get(hObject,'Value')
         % If toggle button is set to play, update GUI elements
-        start(handles.timer);
         set(hObject,'Enable','Off','String','...');
         set(handles.menu_multimedia,'Enable','off');
-        % Clear axis_circle
-        create_axis(handles);
         % Start three second countdown before starting
         set(handles.text_report,'String','...3...'); pause(1);
         set(handles.text_report,'String','..2..'); pause(1);
         set(handles.text_report,'String','.1.'); pause(1);
         set(hObject,'Enable','On','String','Pause');
-        handles.recording = 1;
+        recording = 1;
         guidata(hObject,handles);
         % Send play() command to VLC and wait for it to start playing
         handles.vlc.playlist.play();
     else
         % If toggle button is set to pause, send pause() command to VLC
         handles.vlc.playlist.togglePause();
-        stop(handles.timer);
-        handles.recording = 0;
+        recording = 0;
         set(hObject,'String','Resume','Value',0);
         guidata(hObject,handles);
     end
@@ -214,19 +213,13 @@ end
 
 function timer_Callback(~,~,handles)
     handles = guidata(handles.figure_collect);
-    global settings ratings last_ts_vlc last_ts_sys global_tic marker;
+    global settings ratings last_ts_vlc last_ts_sys global_tic marker recording;
     % Before playing
-    if handles.recording==0
-        try
-            [a,b,~] = read(handles.joy);
-        catch
-            handles.joy = vrjoystick(1);
-            guidata(handles.figure_collect,handles);
-            return;
-        end
+    if recording == 0
+        [a,b,~] = read(handles.joy);
         x = a(1); y = a(2)*-1;
         if b(1)==0, color = 'w'; else color = 'y'; end
-        set(marker,'XData',x,'YData',y,'MarkerFace',color,'Visible','on');
+        set(marker,'XData',x,'YData',y,'MarkerFace',color);
         return;
     end
     % While playing
@@ -251,15 +244,14 @@ function timer_Callback(~,~,handles)
         end
         x = a(1); y = a(2)*-1;
         if b(1)==0, color = 'r'; else color = 'g'; end
-        set(marker,'XData',x,'YData',y,'MarkerFace',color,'Visible','on');
+        set(marker,'XData',x,'YData',y,'MarkerFace',color);
         ratings = [ratings; ts_vlc,x*settings.mag,y*settings.mag,b(1)];
         set(handles.text_report,'string',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
         drawnow();
         guidata(handles.figure_collect,handles);
     % After playing
     elseif handles.vlc.input.state == 5 || handles.vlc.input.state == 6
-        stop(handles.timer);
-        handles.recording = 0;
+        recording = 0;
         handles.vlc.playlist.stop();
         set(handles.toggle_playpause,'Value',0);
         create_axis(handles);
@@ -288,7 +280,7 @@ function timer_Callback(~,~,handles)
                 {'Time of Rating'},{datestr(now)},{''},{''}; ...
                 {'Multimedia File'},{sprintf('%s%s',defaultname,ext)},{''},{''}; ...
                 {'Magnitude'},{settings.mag},{''},{''}; ...
-                {'Second'},{settings.labelX},{settings.labelY},{'B'}; ...
+                {'Second'},{settings.labelX},{settings.labelY},{'Button'}; ...
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
@@ -317,7 +309,7 @@ function timer_ErrorFcn(~,event,handles)
     global settings ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
-    msgbox(sprintf('Timer callback error:\n%s',event),'Error','error');
+    msgbox(sprintf('Timer callback error:\n%s\nAn error log has been saved.',event),'Error','error');
     csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
     guidata(handles.figure_collect,handles);
 end
@@ -338,7 +330,7 @@ function create_axis(handles)
     text(-0.64,-0.64,settings.label6,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.64,-0.64,settings.label7,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     text(0.0,-0.9,settings.label8,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    marker = plot(handles.axis_circle,0,0,'ko','LineWidth',2,'MarkerSize',15,'Visible','off');
+    marker = plot(handles.axis_circle,0,0,'ko','LineWidth',2,'MarkerSize',15,'MarkerFaceColor','white');
     guidata(handles.figure_collect,handles);
 end
 
@@ -364,12 +356,11 @@ end
 
 function figure_collect_CloseReq(hObject,~)
     handles = guidata(hObject);
-    global log;
+    global log recording;
     % Pause playback and rating
     if handles.vlc.input.state==3,handles.vlc.playlist.togglePause(); end
-    if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
     set(handles.toggle_playpause,'String','Resume','Value',0);
-    handles.recording = 0;
+    recording = 0;
     guidata(handles.figure_collect,handles);
     pause(.1); 
     if handles.vlc.input.state==4
@@ -386,6 +377,7 @@ function figure_collect_CloseReq(hObject,~)
     else
         %If ratings are not being collected, exit DARMA
         if log==1, diary off; end
+        if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
         delete(handles.timer);
         delete(gcf);
     end
@@ -394,8 +386,9 @@ end
 % =========================================================
 
 function program_reset(handles)
+    global recording;
     handles = guidata(handles.figure_collect);
-    handles.recording = 0;
+    recording = 0;
     % Update GUI elements to starting configuration
     set(handles.text_report,'String','Open File');
     set(handles.text_filename,'String','');
