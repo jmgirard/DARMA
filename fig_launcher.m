@@ -23,7 +23,7 @@ function fig_launcher
         'Box','on','XTick',[],'YTick',[],...
         'ButtonDownFcn',@website);
     xlim([-1 1]); ylim([-1 1]);
-    text(0,0,'DARMA v5.01','Color',[1 1 1],'FontSize',42,...
+    text(0,0,'DARMA v5.02','Color',[1 1 1],'FontSize',42,...
         'FontName','cambria','HorizontalAlignment','center',...
         'ButtonDownFcn',@website);
     handles.push_collect = uicontrol('Style','pushbutton', ...
@@ -68,6 +68,23 @@ function fig_launcher
                 web('http://www.videolan.org/vlc/download-windows.html','-browser');
         end
         delete(handles.figure_launcher);
+    end
+    % Check for updates
+    try
+        rss = urlread('https://darma.codeplex.com/project/feeds/rss?ProjectRSSFeed=codeplex%3a%2f%2frelease%2fdarma');
+        index = strfind(rss,'DARMA v');
+        newest = str2double(rss(index(1)+7:index(1)+11));
+        current = 5.02;
+        if current < newest
+            choice = questdlg(sprintf('DARMA has detected that an update is available.\nOpen download page?'),...
+                'DARMA','Yes','No','Yes');
+            switch choice
+                case 'Yes'
+                    web('http://darma.codeplex.com/releases/','-browser');
+                    delete(handles.figure_launcher);
+            end
+        end
+    catch
     end
 end
 
