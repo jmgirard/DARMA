@@ -76,7 +76,7 @@ function fig_collect
     catch
         e = errordlg('DARMA could not detect a joystick.','Error','modal');
         waitfor(e);
-        quit force;
+        return;
     end
     % Create timer
     handles.recording = 0;
