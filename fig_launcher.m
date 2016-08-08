@@ -67,7 +67,6 @@ function fig_launcher
             case 'Yes'
                 web('http://www.videolan.org/vlc/download-windows.html','-browser');
         end
-        delete(handles.figure_launcher);
     end
     % Check for updates
     try

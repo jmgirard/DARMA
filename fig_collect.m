@@ -20,10 +20,15 @@ function fig_collect
         'Parent',handles.figure_collect, ...
         'Label','Open Multimedia File', ...
         'Callback',@menu_multimedia_Callback);
-    handles.menu_logging = uimenu(handles.figure_collect, ...
+    handles.menu_preview = uimenu(handles.figure_collect, ...
         'Parent',handles.figure_collect, ...
-        'Label','Turn on Logging', ...
-        'Callback',@menu_logging_Callback);
+        'Label','Preview Multimedia File', ...
+        'Enable','off', ...
+        'Callback',@menu_preview_Callback);
+    handles.menu_help = uimenu(handles.figure_collect, ...
+        'Parent',handles.figure_collect, ...
+        'Label','Help', ...
+        'Callback',@menu_help_Callback);
     pause(0.1);
     set(handles.figure_collect,'Position',[0.1 0.1 0.8 0.8]);
     % Create uicontrol elements
@@ -31,7 +36,6 @@ function fig_collect
         'Parent',handles.figure_collect, ...
         'Units','Normalized', ...
         'Position',[.01 .02 .22 .05], ...
-        'String','Open File', ...
         'FontSize',14.0, ...
         'Enable','off');
     handles.text_filename = uicontrol('Style','edit', ...
@@ -50,7 +54,7 @@ function fig_collect
         'Parent',handles.figure_collect, ...
         'Units','Normalized', ...
         'Position',[.88 .02 .11 .05], ...
-        'String','Play', ...
+        'String','Begin Rating', ...
         'FontSize',14.0, ...
         'Callback',@toggle_playpause_Callback, ...
         'Enable','off');
@@ -86,9 +90,8 @@ function fig_collect
         'TimerFcn',{@timer_Callback,handles}, ...
         'ErrorFcn',{@timer_ErrorFcn,handles});
     % Start system clock to improve VLC time stamp precision
-    global global_tic log recording;
+    global global_tic recording;
     global_tic = tic;
-    log = 0;
     recording = 0;
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
@@ -114,6 +117,7 @@ function menu_multimedia_Callback(hObject,~)
     if video_name==0, return; end
     try
         MRL = fullfile(video_path,video_name);
+        handles.VID = MRL;
         MRL(MRL=='\') = '/';
         handles.MRL = sprintf('file://localhost/%s',MRL);
         handles.vlc.playlist.add(handles.MRL);
@@ -132,36 +136,32 @@ function menu_multimedia_Callback(hObject,~)
         msgbox(err.message,'Error loading multimedia file.'); return;
     end
     % Update GUI elements
-    set(handles.text_report,'String','Press Play');
     set(handles.text_filename,'String',video_name);
     set(handles.text_duration,'String',datestr(handles.dur/24/3600,'HH:MM:SS'));
     set(handles.toggle_playpause,'Enable','On');
+    set(handles.menu_preview,'Enable','On');
     guidata(hObject,handles);
 end
 
 % =========================================================
 
-function menu_logging_Callback(hObject,~)
+function menu_preview_Callback(hObject,~)
     handles = guidata(hObject);
-    global log;
-    if log==0
-        [file,path] = uiputfile('*.txt','Create a log file',sprintf('%s.txt',datestr(now,30)));
-        if isequal(file,0) || isequal(path,0)
-            return;
-        else
-            diary(fullfile(path,file));
-            set(handles.menu_logging,'Label','Turn off logging');
-            log = 1;
-        end
-    else
-        diary('off');
-        set(handles.menu_logging,'Label','Turn on logging');
-        log = 0;
-        a = msgbox('Logging off');
-        waitfor(a);
+    winopen(handles.VID);
+end
+
+% =========================================================
+function menu_help_Callback(~,~)
+    choice = questdlg(sprintf('Please select one of the following options to gain support for DARMA:'),...
+        'DARMA','View Documentation','Start Discussion','Request Support','View Documentation');
+    switch choice
+        case 'View Documentation'
+            web('https://darma.codeplex.com/documentation','-browser');
+        case 'Start Discussion'
+            web('https://darma.codeplex.com/discussions','-browser');
+        case 'Request Support'
+            sendmail('j.girard@pitt.edu','DARMA Support Request','Email Text');
     end
-    uicontrol(handles.toggle_playpause);
-    guidata(hObject,handles);
 end
 
 % =========================================================
@@ -175,7 +175,7 @@ function figure_collect_KeyPress(hObject,eventdata)
     if strcmp(eventdata.Key,'space') && get(handles.toggle_playpause,'value')
         handles.vlc.playlist.togglePause();
         recording = 0;
-        set(handles.toggle_playpause,'String','Resume','Value',0);
+        set(handles.toggle_playpause,'String','Resume Rating','Value',0);
     else
         return;
     end
@@ -195,7 +195,7 @@ function toggle_playpause_Callback(hObject,~)
         set(handles.text_report,'String','...3...'); pause(1);
         set(handles.text_report,'String','..2..'); pause(1);
         set(handles.text_report,'String','.1.'); pause(1);
-        set(hObject,'Enable','On','String','Pause');
+        set(hObject,'Enable','On','String','Pause Rating');
         recording = 1;
         guidata(hObject,handles);
         % Send play() command to VLC and wait for it to start playing
@@ -204,7 +204,7 @@ function toggle_playpause_Callback(hObject,~)
         % If toggle button is set to pause, send pause() command to VLC
         handles.vlc.playlist.togglePause();
         recording = 0;
-        set(hObject,'String','Resume','Value',0);
+        set(hObject,'String','Resume Rating','Value',0);
         guidata(hObject,handles);
     end
 end
@@ -254,7 +254,6 @@ function timer_Callback(~,~,handles)
         recording = 0;
         handles.vlc.playlist.stop();
         set(handles.toggle_playpause,'Value',0);
-        create_axis(handles);
         set(handles.text_report,'string','Processing...');
         % Average ratings per second of playback
         rating = ratings;
@@ -303,13 +302,13 @@ end
 
 % =========================================================
 
-function timer_ErrorFcn(~,event,handles)
-    disp(event);
+function timer_ErrorFcn(hObject,event,handles)
+    disp(event.Data);
     handles = guidata(handles.figure_collect);
     global settings ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
-    msgbox(sprintf('Timer callback error:\n%s\nAn error log has been saved.',event),'Error','error');
+    msgbox(sprintf('Timer callback error:\n%s\nAn error log has been saved.',event.Data.message),'Error','error');
     csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
     guidata(handles.figure_collect,handles);
 end
@@ -319,7 +318,7 @@ end
 function create_axis(handles)
     handles = guidata(handles.figure_collect);
     global settings marker;
-    axes(handles.axis_circle); cla;
+    axes(handles.axis_circle);
     plot(handles.axis_circle,[-1,1],[0,0],'k-');
     plot(handles.axis_circle,[0,0],[-1,1],'k-');
     text(0.0,0.9,settings.label1,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
@@ -356,10 +355,10 @@ end
 
 function figure_collect_CloseReq(hObject,~)
     handles = guidata(hObject);
-    global log recording;
+    global recording;
     % Pause playback and rating
     if handles.vlc.input.state==3,handles.vlc.playlist.togglePause(); end
-    set(handles.toggle_playpause,'String','Resume','Value',0);
+    set(handles.toggle_playpause,'String','Resume Rating','Value',0);
     recording = 0;
     guidata(handles.figure_collect,handles);
     pause(.1); 
@@ -376,7 +375,6 @@ function figure_collect_CloseReq(hObject,~)
         end
     else
         %If ratings are not being collected, exit DARMA
-        if log==1, diary off; end
         if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
         delete(handles.timer);
         delete(gcf);
@@ -390,11 +388,11 @@ function program_reset(handles)
     handles = guidata(handles.figure_collect);
     recording = 0;
     % Update GUI elements to starting configuration
-    set(handles.text_report,'String','Open File');
+    set(handles.text_report,'String','');
     set(handles.text_filename,'String','');
     set(handles.text_duration,'String','');
-    set(handles.toggle_playpause,'Enable','off','String','Play');
+    set(handles.toggle_playpause,'Enable','off','String','Begin Rating');
     set(handles.menu_multimedia,'Enable','on');
+    set(handles.menu_preview,'Enable','off');
     guidata(handles.figure_collect,handles);
-    create_axis(handles);
 end
