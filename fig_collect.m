@@ -191,6 +191,7 @@ function toggle_playpause_Callback(hObject,~)
         % If toggle button is set to play, update GUI elements
         set(hObject,'Enable','Off','String','...');
         set(handles.menu_multimedia,'Enable','off');
+        set(handles.menu_preview,'Enable','off');
         % Start three second countdown before starting
         set(handles.text_report,'String','...3...'); pause(1);
         set(handles.text_report,'String','..2..'); pause(1);
