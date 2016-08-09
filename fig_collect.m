@@ -378,7 +378,7 @@ function figure_collect_CloseReq(hObject,~)
         %If ratings are not being collected, exit DARMA
         if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
         delete(handles.timer);
-        delete(gcf);
+        delete(handles.figure_collect);
     end
 end
 
