@@ -3,6 +3,8 @@ function fig_launcher
 % License: https://darma.codeplex.com/license
 
     % Create and center main window
+    global version;
+    version = 5.04;
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_launcher = figure( ...
         'Units','pixels', ...
@@ -23,7 +25,7 @@ function fig_launcher
         'Box','on','XTick',[],'YTick',[],...
         'ButtonDownFcn',@website);
     xlim([-1 1]); ylim([-1 1]);
-    text(0,0,'DARMA v5.04','Color',[1 1 1],'FontSize',42,...
+    text(0,0,sprintf('DARMA v%.2f',version),'Color',[1 1 1],'FontSize',42,...
         'FontName','cambria','HorizontalAlignment','center',...
         'ButtonDownFcn',@website);
     handles.push_collect = uicontrol('Style','pushbutton', ...
@@ -73,7 +75,7 @@ function fig_launcher
         rss = urlread('https://darma.codeplex.com/project/feeds/rss?ProjectRSSFeed=codeplex%3a%2f%2frelease%2fdarma');
         index = strfind(rss,'DARMA v');
         newest = str2double(rss(index(1)+7:index(1)+11));
-        current = 5.04;
+        current = version;
         if current < newest
             choice = questdlg(sprintf('DARMA has detected that an update is available.\nOpen download page?'),...
                 'DARMA','Yes','No','Yes');

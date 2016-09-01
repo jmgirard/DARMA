@@ -433,7 +433,8 @@ end
 % ===============================================================================
 
 function menu_about_Callback(~,~)
-    msgbox(sprintf('DARMA version 5.04\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3'),'About','Help');
+    global version;
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3',version),'About','Help');
 end
 
 % ===============================================================================
