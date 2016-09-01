@@ -16,10 +16,10 @@ function fig_collect
         'KeyPressFcn',@figure_collect_KeyPress, ...
         'CloseRequestFcn',@figure_collect_CloseReq);
     % Create menu bar elements
-    handles.menu_multimedia = uimenu(handles.figure_collect, ...
+    handles.menu_media = uimenu(handles.figure_collect, ...
         'Parent',handles.figure_collect, ...
         'Label','Open Multimedia File', ...
-        'Callback',@menu_multimedia_Callback);
+        'Callback',@menu_media_Callback);
     handles.menu_preview = uimenu(handles.figure_collect, ...
         'Parent',handles.figure_collect, ...
         'Label','Preview Multimedia File', ...
@@ -114,7 +114,7 @@ end
 
 % =========================================================
 
-function menu_multimedia_Callback(hObject,~)
+function menu_media_Callback(hObject,~)
     handles = guidata(hObject);
     % Reset the GUI elements
     program_reset(handles);
@@ -123,7 +123,7 @@ function menu_multimedia_Callback(hObject,~)
     last_ts_vlc = 0;
     last_ts_sys = 0;
     handles.vlc.playlist.items.clear();
-    % Browse for, load, and get text_duration for a multimedia file
+    % Browse for, load, and get text_duration for a media file
     [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file',fullfile(settings.folder));
     if video_name==0, return; end
     try
@@ -141,10 +141,10 @@ function menu_multimedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         if handles.dur == 0
             handles.vlc.playlist.items.clear();
-            error('Could not read duration of multimedia file. The file meta-data may be damaged. Transcoding the streams (e.g., with HandBrake) may fix this problem.');
+            error('Could not read duration of media file. The file meta-data may be damaged. Transcoding the streams (e.g., with HandBrake) may fix this problem.');
         end
     catch err
-        msgbox(err.message,'Error loading multimedia file.'); return;
+        msgbox(err.message,'Error loading media file.'); return;
     end
     % Update GUI elements
     set(handles.text_filename,'String',video_name);
@@ -205,7 +205,7 @@ function toggle_playpause_Callback(hObject,~)
     if get(hObject,'Value')
         % If toggle button is set to play, update GUI elements
         set(hObject,'Enable','Off','String','...');
-        set(handles.menu_multimedia,'Enable','off');
+        set(handles.menu_media,'Enable','off');
         set(handles.menu_preview,'Enable','off');
         % Start three second countdown before starting
         set(handles.text_report,'String','...3...'); pause(1);
@@ -408,7 +408,7 @@ function program_reset(handles)
     set(handles.text_filename,'String','');
     set(handles.text_duration,'String','');
     set(handles.toggle_playpause,'Enable','off','String','Begin Rating');
-    set(handles.menu_multimedia,'Enable','on');
+    set(handles.menu_media,'Enable','on');
     set(handles.menu_preview,'Enable','off');
     guidata(handles.figure_collect,handles);
 end

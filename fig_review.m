@@ -16,10 +16,10 @@ function fig_review
         'SizeChangedFcn',@figure_review_SizeChanged, ...
         'CloseRequestFcn',@figure_review_CloseRequest);
     %Create menu bar elements
-    handles.menu_multimedia = uimenu(handles.figure_review, ...
+    handles.menu_media = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
-        'Label','Open Multimedia File', ...
-        'Callback',@menu_multimedia_Callback);
+        'Label','Open Media File', ...
+        'Callback',@menu_media_Callback);
     handles.menu_export = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Export Mean Ratings', ...
@@ -159,12 +159,12 @@ end
 
 % ===============================================================================
 
-function menu_multimedia_Callback(hObject,~)
+function menu_media_Callback(hObject,~)
     handles = guidata(hObject);
     global settings;
     % Reset the GUI elements
     handles.vlc.playlist.items.clear();
-    % Browse for, load, and get text_duration for a multimedia file
+    % Browse for, load, and get text_duration for a media file
     [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file:',fullfile(settings.folder));
     if video_name==0, return; end
     try
@@ -181,7 +181,7 @@ function menu_multimedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         set(handles.toggle_playpause,'String','Play','Enable','on');
     catch err
-        msgbox(err.message,'Error loading multimedia file.'); return;
+        msgbox(err.message,'Error loading media file.'); return;
     end
     guidata(handles.figure_review,handles);
 end
@@ -201,7 +201,7 @@ function menu_export_Callback(hObject,~)
     end
     output = [ ...
         {'Time of Rating'},{datestr(now)},{''},{''}; ...
-        {'Multimedia File'},{sprintf('%s%s',name,ext)},{''},{''}; ...
+        {'Media File'},{sprintf('%s%s',name,ext)},{''},{''}; ...
         {'Magnitude'},{handles.mag},{''},{''}; ...
         {'Second'},{handles.labelX},{handles.labelY},{'B'}; ...
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
@@ -289,7 +289,7 @@ function push_addseries_Callback(hObject,~)
             msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
             return;
         end
-        % Check that the import file matches the multimedia file
+        % Check that the import file matches the media file
         if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data,1)
             msgbox('Annotation file must have the same bin size as the other annotation files.','Error','Error');
             return;
@@ -464,14 +464,14 @@ function toggle_playpause_Callback(hObject,~)
         handles.vlc.playlist.play();
         start(handles.timer2);
         set(hObject,'String','Pause');
-        set(handles.menu_multimedia,'Enable','off');
+        set(handles.menu_media,'Enable','off');
         set(handles.menu_export,'Enable','off');
     else
         % Send pause() command to VLC and stop timer
         handles.vlc.playlist.togglePause();
         stop(handles.timer2);
         set(hObject,'String','Resume','Value',0);
-        set(handles.menu_multimedia,'Enable','on');
+        set(handles.menu_media,'Enable','on');
         set(handles.menu_export,'Enable','on');
     end
     guidata(hObject, handles);

@@ -2,9 +2,9 @@ function fig_launcher
 %FIG_LAUNCHER Window to launch the other windows
 % License: https://darma.codeplex.com/license
 
-    % Create and center main window
     global version;
     version = 5.04;
+    % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_launcher = figure( ...
         'Units','pixels', ...
