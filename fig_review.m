@@ -23,7 +23,7 @@ function fig_review
     handles.menu_addseries = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Add Annotation File(s)', ...
-        'Callback',@button_addseries_Callback);
+        'Callback',@menu_addseries_Callback);
     handles.menu_delseries = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Remove Annotation Files');
@@ -34,7 +34,7 @@ function fig_review
     handles.menu_delone = uimenu(handles.menu_delseries, ...
         'Parent',handles.menu_delseries, ...
         'Label','Remove Selected File', ...
-        'Callback',@button_delone_Callback);
+        'Callback',@menu_delone_Callback);
     handles.menu_export = uimenu(handles.figure_review, ...
         'Parent',handles.figure_review, ...
         'Label','Export Mean Ratings', ...
@@ -52,6 +52,21 @@ function fig_review
         'Parent',handles.menu_stats, ...
         'Label','Consistency ICC', ...
         'Callback',@menu_consist_Callback);
+    handles.menu_help = uimenu(handles.figure_review, ...
+        'Parent',handles.figure_review, ...
+        'Label','Help');
+    handles.menu_about = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','About', ...
+        'Callback',@menu_about_Callback);
+    handles.menu_document = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','Documentation', ...
+        'Callback',@menu_document_Callback);
+    handles.menu_report = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','Report Issues', ...
+        'Callback',@menu_report_Callback);
     pause(0.1);
     %Create uicontrol elements
     lc = .01; rc = .89;
@@ -174,6 +189,157 @@ end
 
 % ===============================================================================
 
+function menu_addseries_Callback(hObject,~)
+    handles = guidata(hObject);
+    if get(handles.toggle_meanplot,'Value')==1
+        msgbox('Please turn off mean plotting before adding annotation files.');
+        return;
+    end
+    global settings;
+    % Prompt user for import file.
+    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
+    if ~iscell(filenames)
+        if filenames==0, return; end
+        filenames = {filenames};
+    end
+    w = waitbar(0,'Importing annotation files...');
+    for f = 1:length(filenames)
+        filename = filenames{f};
+        [~,~,ext] = fileparts(filename);
+        if strcmp(ext,'.csv')
+            fileID = fopen(fullfile(pathname,filename),'r');
+            magcell = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
+            mag = magcell{1};
+            fclose(fileID);
+            fileID = fopen(fullfile(pathname,filename),'r');
+            labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
+            labelX = labels{1}{1};
+            labelY = labels{2}{1};
+            fclose(fileID);
+            fileID = fopen(fullfile(pathname,filename),'r');
+            datacell = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
+            data = [datacell{:,1},datacell{:,2},datacell{:,3}];
+            fclose(fileID);
+        else
+            [nums,txts] = xlsread(fullfile(pathname,filename),'','','basic');
+            mag = nums(3,2);
+            labelX = txts{4,2};
+            labelY = txts{4,3};
+            data = nums(6:end,1:3);
+        end
+        % Get settings from import file    
+        if isempty(handles.mag)
+            handles.mag = mag;
+            handles.labelX = labelX;
+            handles.labelY = labelY;
+        elseif handles.mag ~= mag
+            msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
+            return;
+        end
+        % Check that the import file matches the multimedia file
+        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data,1)
+            msgbox('Annotation file must have the same bin size as the other annotation files.','Error','Error');
+            return;
+        else
+            % Append the new file to the stored data
+            handles.Seconds = data(:,1);
+            handles.AllRatingsX = [handles.AllRatingsX,data(:,2)];
+            handles.AllRatingsY = [handles.AllRatingsY,data(:,3)];
+            [~,fn,~] = fileparts(filename);
+            handles.AllFilenames = [handles.AllFilenames;fn];
+            % Update mean series
+            handles.MeanRatingsX = nanmean(handles.AllRatingsX,2);
+            handles.MeanRatingsY = nanmean(handles.AllRatingsY,2);
+            guidata(hObject,handles);
+        end
+        waitbar(f/length(filenames));
+    end
+    update_plots(handles);
+    % Update list box
+    CS = get(gca,'ColorOrder');
+    rows = {'<html><u>Annotation Files'};
+    for i = 1:size(handles.AllRatingsX,2)
+        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+    end
+    set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
+    % Update reliability box
+    box = reliability(handles.AllRatingsX,handles.AllRatingsY);
+    set(handles.reliability,'Data',box);
+    plot_centroids(handles.figure_review,[]);
+    guidata(handles.figure_review,handles);
+    delete(w);
+    set(handles.toggle_meanplot,'Enable','on');
+    set(handles.menu_export,'Enable','on');
+    guidata(handles.figure_review,handles);
+end
+
+% ===============================================================================
+
+function menu_delone_Callback(hObject,~)
+    handles = guidata(hObject);
+    if get(handles.toggle_meanplot,'Value')==1
+        msgbox('Please turn off mean plotting before removing annotation files.');
+        return;
+    end
+    % Get currently selected item
+    index = get(handles.listbox,'Value')-1;
+    % Cancel if the first row is selected
+    if index == 0, return; end
+    % Cancel if only one row remains
+    if size(handles.AllRatingsX,2)<2,
+        handles.AllRatingsX = zeros(0,1);
+        handles.AllRatingsY = zeros(0,1);
+        handles.MeanRatingsX = zeros(0,1);
+        handles.MeanRatingsY = zeros(0,1);
+        handles.AllFilenames = cell(0,1);
+        handles.mag = zeros(0,1);
+        cla(handles.axis_X);
+        cla(handles.axis_Y);
+        cla(handles.axis_C);
+        set(handles.axis_X,'PickableParts','none');
+        set(handles.axis_Y,'PickableParts','none');
+    else
+        % Remove the selected item from program
+        handles.AllRatingsX(:,index) = [];
+        handles.AllRatingsY(:,index) = [];
+        handles.AllFilenames(index) = [];
+        % Update mean series
+        handles.MeanRatingsX = nanmean(handles.AllRatingsX,2);
+        handles.MeanRatingsY = nanmean(handles.AllRatingsY,2);
+        guidata(handles.figure_review,handles);
+        update_plots(handles);
+    end
+    % Update list box
+    set(handles.listbox,'Value',1);
+    CS = get(gca,'ColorOrder');
+    rows = {'<html><u>Annotation Files'};
+    if isempty(handles.AllRatingsX)
+        box = '';
+        set(handles.toggle_meanplot,'Enable','off','Value',0);
+        set(handles.menu_export,'Enable','off');
+    elseif size(handles.AllRatingsX,2)==1
+        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,handles.AllFilenames{1})];
+        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
+        set(handles.toggle_meanplot,'Enable','off','Value',0);
+        set(handles.menu_export,'Enable','off');
+    else
+        for i = 1:size(handles.AllRatingsX,2)
+            colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
+            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+        end
+        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
+        toggle_meanplot_Callback(handles.toggle_meanplot,[]);
+    end
+    set(handles.listbox,'String',rows);
+    set(handles.reliability,'Data',box);
+    listbox_Callback(handles.listbox,[]);
+    % Update guidata with handles
+    guidata(handles.figure_review,handles);
+end
+
+% ===============================================================================
+
 function menu_delall_Callback(hObject,~)
     handles = guidata(hObject);
     if get(handles.toggle_meanplot,'Value')==1
@@ -266,153 +432,20 @@ end
 
 % ===============================================================================
 
-function button_addseries_Callback(hObject,~)
-    handles = guidata(hObject);
-    if get(handles.toggle_meanplot,'Value')==1
-        msgbox('Please turn off mean plotting before adding annotation files.');
-        return;
-    end
-    global settings;
-    % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
-    if ~iscell(filenames)
-        if filenames==0, return; end
-        filenames = {filenames};
-    end
-    w = waitbar(0,'Importing annotation files...');
-    for f = 1:length(filenames)
-        filename = filenames{f};
-        [~,~,ext] = fileparts(filename);
-        if strcmp(ext,'.csv')
-            fileID = fopen(fullfile(pathname,filename),'r');
-            magcell = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
-            mag = magcell{1};
-            fclose(fileID);
-            fileID = fopen(fullfile(pathname,filename),'r');
-            labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
-            labelX = labels{1}{1};
-            labelY = labels{2}{1};
-            fclose(fileID);
-            fileID = fopen(fullfile(pathname,filename),'r');
-            datacell = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
-            data = [datacell{:,1},datacell{:,2},datacell{:,3}];
-            fclose(fileID);
-        else
-            [nums,txts] = xlsread(fullfile(pathname,filename),'','','basic');
-            mag = nums(3,2);
-            labelX = txts{4,2};
-            labelY = txts{4,3};
-            data = nums(6:end,1:3);
-        end
-        % Get settings from import file    
-        if isempty(handles.mag)
-            handles.mag = mag;
-            handles.labelX = labelX;
-            handles.labelY = labelY;
-        elseif handles.mag ~= mag
-            msgbox('Annotation files must have the same magnitude to be loaded together.','Error','Error');
-            return;
-        end
-        % Check that the import file matches the multimedia file
-        if ~isempty(handles.AllRatingsX) && size(handles.AllRatingsX,1)~=size(data,1)
-            msgbox('Annotation file must have the same bin size as the other annotation files.','Error','Error');
-            return;
-        else
-            % Append the new file to the stored data
-            handles.Seconds = data(:,1);
-            handles.AllRatingsX = [handles.AllRatingsX,data(:,2)];
-            handles.AllRatingsY = [handles.AllRatingsY,data(:,3)];
-            [~,fn,~] = fileparts(filename);
-            handles.AllFilenames = [handles.AllFilenames;fn];
-            % Update mean series
-            handles.MeanRatingsX = nanmean(handles.AllRatingsX,2);
-            handles.MeanRatingsY = nanmean(handles.AllRatingsY,2);
-            guidata(hObject,handles);
-        end
-        waitbar(f/length(filenames));
-    end
-    update_plots(handles);
-    % Update list box
-    CS = get(gca,'ColorOrder');
-    rows = {'<html><u>Annotation Files'};
-    for i = 1:size(handles.AllRatingsX,2)
-        colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
-    end
-    set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
-    % Update reliability box
-    box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-    set(handles.reliability,'Data',box);
-    plot_centroids(handles.figure_review,[]);
-    guidata(handles.figure_review,handles);
-    delete(w);
-    set(handles.toggle_meanplot,'Enable','on');
-    set(handles.menu_export,'Enable','on');
-    guidata(handles.figure_review,handles);
+function menu_about_Callback(~,~)
+    msgbox(sprintf('DARMA version 5.04\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3'),'About','Help');
 end
 
 % ===============================================================================
 
-function button_delone_Callback(hObject,~)
-    handles = guidata(hObject);
-    if get(handles.toggle_meanplot,'Value')==1
-        msgbox('Please turn off mean plotting before removing annotation files.');
-        return;
-    end
-    % Get currently selected item
-    index = get(handles.listbox,'Value')-1;
-    % Cancel if the first row is selected
-    if index == 0, return; end
-    % Cancel if only one row remains
-    if size(handles.AllRatingsX,2)<2,
-        handles.AllRatingsX = zeros(0,1);
-        handles.AllRatingsY = zeros(0,1);
-        handles.MeanRatingsX = zeros(0,1);
-        handles.MeanRatingsY = zeros(0,1);
-        handles.AllFilenames = cell(0,1);
-        handles.mag = zeros(0,1);
-        cla(handles.axis_X);
-        cla(handles.axis_Y);
-        cla(handles.axis_C);
-        set(handles.axis_X,'PickableParts','none');
-        set(handles.axis_Y,'PickableParts','none');
-    else
-        % Remove the selected item from program
-        handles.AllRatingsX(:,index) = [];
-        handles.AllRatingsY(:,index) = [];
-        handles.AllFilenames(index) = [];
-        % Update mean series
-        handles.MeanRatingsX = nanmean(handles.AllRatingsX,2);
-        handles.MeanRatingsY = nanmean(handles.AllRatingsY,2);
-        guidata(handles.figure_review,handles);
-        update_plots(handles);
-    end
-    % Update list box
-    set(handles.listbox,'Value',1);
-    CS = get(gca,'ColorOrder');
-    rows = {'<html><u>Annotation Files'};
-    if isempty(handles.AllRatingsX)
-        box = '';
-        set(handles.toggle_meanplot,'Enable','off','Value',0);
-        set(handles.menu_export,'Enable','off');
-    elseif size(handles.AllRatingsX,2)==1
-        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,handles.AllFilenames{1})];
-        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-        set(handles.toggle_meanplot,'Enable','off','Value',0);
-        set(handles.menu_export,'Enable','off');
-    else
-        for i = 1:size(handles.AllRatingsX,2)
-            colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
-        end
-        box = reliability(handles.AllRatingsX,handles.AllRatingsY);
-        toggle_meanplot_Callback(handles.toggle_meanplot,[]);
-    end
-    set(handles.listbox,'String',rows);
-    set(handles.reliability,'Data',box);
-    listbox_Callback(handles.listbox,[]);
-    % Update guidata with handles
-    guidata(handles.figure_review,handles);
+function menu_document_Callback(~,~)
+    web('http://darma.codeplex.com/documentation','-browser');
+end
+
+% ===============================================================================
+
+function menu_report_Callback(~,~)
+    web('http://darma.codeplex.com/discussions','-browser');
 end
 
 % ===============================================================================

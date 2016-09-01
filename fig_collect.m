@@ -27,8 +27,19 @@ function fig_collect
         'Callback',@menu_preview_Callback);
     handles.menu_help = uimenu(handles.figure_collect, ...
         'Parent',handles.figure_collect, ...
-        'Label','Help', ...
-        'Callback',@menu_help_Callback);
+        'Label','Help');
+    handles.menu_about = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','About', ...
+        'Callback',@menu_about_Callback);
+    handles.menu_document = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','Documentation', ...
+        'Callback',@menu_document_Callback);
+    handles.menu_report = uimenu(handles.menu_help, ...
+        'Parent',handles.menu_help, ...
+        'Label','Report Issues', ...
+        'Callback',@menu_report_Callback);
     pause(0.1);
     set(handles.figure_collect,'Position',[0.1 0.1 0.8 0.8]);
     % Create uicontrol elements
@@ -149,19 +160,22 @@ function menu_preview_Callback(hObject,~)
     handles = guidata(hObject);
     winopen(handles.VID);
 end
+% ===============================================================================
 
-% =========================================================
-function menu_help_Callback(~,~)
-    choice = questdlg(sprintf('Please select one of the following options to gain support for DARMA:'),...
-        'DARMA','View Documentation','Start Discussion','Request Support','View Documentation');
-    switch choice
-        case 'View Documentation'
-            web('https://darma.codeplex.com/documentation','-browser');
-        case 'Start Discussion'
-            web('https://darma.codeplex.com/discussions','-browser');
-        case 'Request Support'
-            sendmail('j.girard@pitt.edu','DARMA Support Request','Email Text');
-    end
+function menu_about_Callback(~,~)
+    msgbox(sprintf('DARMA version 5.04\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3'),'About','Help');
+end
+
+% ===============================================================================
+
+function menu_document_Callback(~,~)
+    web('http://darma.codeplex.com/documentation','-browser');
+end
+
+% ===============================================================================
+
+function menu_report_Callback(~,~)
+    web('http://darma.codeplex.com/discussions','-browser');
 end
 
 % =========================================================
