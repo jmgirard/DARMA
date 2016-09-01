@@ -114,10 +114,13 @@ function fig_review
         'Parent',handles.figure_review, ...
         'OuterPosition',[.53 .42 .35 .565], ...
         'TickLength',[0.02,0.00], ...
-        'YLim',[-100,100],'YTick',linspace(-100,100,5),'YTickLabel',[],'YGrid','on',...
-        'XLim',[-100,100],'XTick',linspace(-100,100,5),'XTickLabel',[],'XGrid','on',...
+        'YLim',[-100,100],'YTick',linspace(-100,100,3),'YTickLabel',[],'YMinorGrid','on',...
+        'XLim',[-100,100],'XTick',linspace(-100,100,3),'XTickLabel',[],'XMinorGrid','on',...
         'Box','on','NextPlot','add', ...
         'LooseInset',[0 0 0 0]);
+    handles.axis_C.YRuler.MinorTickValues = linspace(-100,100,5);
+    handles.axis_C.XRuler.MinorTickValues = linspace(-100,100,5);
+    set(handles.axis_C,'YGrid','on','XGrid','on','GridColor',[.5 .5 .5],'GridAlpha',1);
     handles.toggle_playpause = uicontrol('Style','togglebutton', ...
         'Parent',handles.figure_review, ...
         'Units','Normalized', ...
@@ -564,7 +567,9 @@ function plot_centroids(hObject,~)
     cla(handles.axis_C);
     set(handles.axis_C,...
         'XLim',[-1*handles.mag,handles.mag],'YLim',[-1*handles.mag,handles.mag],...
-        'XTick',linspace(-1*handles.mag,handles.mag,5),'YTick',linspace(-1*handles.mag,handles.mag,5));
+        'XTick',linspace(-1*handles.mag,handles.mag,3),'YTick',linspace(-1*handles.mag,handles.mag,3));
+    handles.axis_C.YRuler.MinorTickValues = linspace(-1*handles.mag,handles.mag,5);
+    handles.axis_C.XRuler.MinorTickValues = linspace(-1*handles.mag,handles.mag,5);
     axes(handles.axis_C);
     CS = get(gca,'ColorOrder');
     for i = 1:size(handles.AllRatingsX,2)
@@ -611,7 +616,7 @@ function update_plots(handles)
         hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
@@ -622,7 +627,7 @@ function update_plots(handles)
         hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         handles.CS = get(gca,'ColorOrder');
@@ -637,7 +642,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.MeanRatingsX,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'X'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
         ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
@@ -649,7 +654,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.MeanRatingsY,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'Y'});
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',0,'YTickLabel',[],'YGrid','on');
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
         ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
