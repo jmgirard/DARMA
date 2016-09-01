@@ -49,20 +49,20 @@ function fig_review
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .24 .86 .16], ...
         'YLim',[-100,100],'YTick',linspace(-100,100,5),'YTickLabel',[],'YGrid','on', ...
-        'XLim',[0,10],'XTick',(1:10),'Box','on', ...
+        'XLim',[0,11],'XTick',(1:10),'Box','on', ...
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'X'});
-    ylabel('X Axis');
+    ylabel('X Axis','FontSize',10);
     handles.axis_Y = axes('Units','Normalized', ...
         'Parent',handles.figure_review, ...
         'TickLength',[0.005 0], ...
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .04 .86 .16], ...
         'YLim',[-100,100],'YTick',linspace(-100,100,5),'YTickLabel',[],'YGrid','on', ...
-        'XLim',[0,10],'XTick',(1:10),'Box','on', ...
+        'XLim',[0,11],'XTick',(1:10),'Box','on', ...
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'Y'});
-    ylabel('Y Axis');
+    ylabel('Y Axis','FontSize',10);
     handles.listbox = uicontrol('Style','listbox', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
@@ -113,7 +113,7 @@ function fig_review
     handles.axis_C = axes('Units','normalized', ...
         'Parent',handles.figure_review, ...
         'OuterPosition',[.53 .42 .35 .565], ...
-        'TickLength',[0.02,0.00], ...
+        'TickLength',[0 0], ...
         'YLim',[-100,100],'YTick',linspace(-100,100,3),'YTickLabel',[],'YMinorGrid','on', ...
         'XLim',[-100,100],'XTick',linspace(-100,100,3),'XTickLabel',[],'XMinorGrid','on', ...
         'Box','on','NextPlot','add', ...
@@ -313,7 +313,9 @@ function push_addseries_Callback(hObject,~)
     rows = {'<html><u>Annotation Files'};
     for i = 1:size(handles.AllRatingsX,2)
         colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+        disp = handles.AllFilenames{i};
+        disp(disp=='_') = '-';
+        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,disp)];
     end
     set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
     plot_centroids(handles.figure_review,[]);
@@ -369,13 +371,17 @@ function push_delone_Callback(hObject,~)
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
     elseif size(handles.AllRatingsX,2)==1
-        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,handles.AllFilenames{1})];
+        disp = handles.AllFilenames{1};
+        disp(disp=='_') = '-';
+        rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,disp)];
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
     else
         for i = 1:size(handles.AllRatingsX,2)
             colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+            disp = handles.AllFilenames{i};
+            disp(disp=='_') = '-';
+            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,disp)];
         end
         toggle_meanplot_Callback(handles.toggle_meanplot,[]);
     end
@@ -425,7 +431,9 @@ function toggle_meanplot_Callback(hObject,~)
         set(hObject,'String','Hide Mean Plot');
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
-            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv([.8 .8 .8]),i,handles.AllFilenames{i})];
+            disp = handles.AllFilenames{i};
+            disp(disp=='_') = '-';
+            rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv([.8 .8 .8]),i,disp)];
         end
         rows = [cellstr(rows);'<html><font color="red">[M]</font> Mean Plot'];
         set(handles.listbox,'String',rows);
@@ -437,7 +445,9 @@ function toggle_meanplot_Callback(hObject,~)
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
            colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
-           rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,handles.AllFilenames{i})];
+           disp = handles.AllFilenames{i};
+           disp(disp=='_') = '-';
+           rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,disp)];
         end
         set(handles.listbox,'String',rows);
     end
@@ -617,8 +627,8 @@ function update_plots(handles)
         hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
-        ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on','TickLength',[0.005 0]);
+        ylabel(handles.labelX,'FontSize',10);
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
         ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
@@ -628,8 +638,8 @@ function update_plots(handles)
         hold on;
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
-        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
-        ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
+        set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on','TickLength',[0.005 0]);
+        ylabel(handles.labelY,'FontSize',10);
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         handles.CS = get(gca,'ColorOrder');
         ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
@@ -644,7 +654,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
-        ylabel(sprintf('%s (X)',handles.labelX),'FontSize',10);
+        ylabel(handles.labelX,'FontSize',10);
         ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
         % Configure second (Y) axis for mean plots
@@ -656,7 +666,7 @@ function update_plots(handles)
         ylim([-1*handles.mag,handles.mag]);
         xlim([0,ceil(max(handles.Seconds))+1]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
-        ylabel(sprintf('%s (Y)',handles.labelY),'FontSize',10);
+        ylabel(handles.labelY,'FontSize',10);
         ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
         hold off;
     end
