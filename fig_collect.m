@@ -412,5 +412,6 @@ function program_reset(handles)
     set(handles.toggle_playpause,'Enable','off','String','Begin Rating');
     set(handles.menu_media,'Enable','on');
     set(handles.menu_preview,'Enable','off');
+    set(handles.menu_help,'Enable','on');
     guidata(handles.figure_collect,handles);
 end

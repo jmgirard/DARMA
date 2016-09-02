@@ -319,11 +319,12 @@ function push_addseries_Callback(hObject,~)
     end
     set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
     plot_centroids(handles.figure_review,[]);
-    guidata(handles.figure_review,handles);
     delete(w);
-    set(handles.menu_export,'Enable','on');
-    set(handles.toggle_meanplot,'Enable','on');
     set(handles.push_analyze,'Enable','on');
+    if size(handles.AllRatingsX,2)>1
+        set(handles.menu_export,'Enable','on');
+        set(handles.toggle_meanplot,'Enable','on');
+    end
     guidata(handles.figure_review,handles);
 end
 
@@ -378,7 +379,6 @@ function push_delone_Callback(hObject,~)
         rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,disp)];
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
-        set(handles.push_analyze,'Enable','off');
     else
         for i = 1:size(handles.AllRatingsX,2)
             colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
@@ -490,14 +490,16 @@ function toggle_playpause_Callback(hObject,~)
         stop(handles.timer2);
         set(hObject,'String','Resume');
         set(handles.menu_media,'Enable','on');
-        set(handles.menu_export,'Enable','on');
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
         set(handles.push_delone,'Enable','on');
         set(handles.push_delall,'Enable','on');
-        set(handles.toggle_meanplot,'Enable','on');
         set(handles.push_analyze,'Enable','on');
+        if size(handles.AllRatingsX,2)>1
+            set(handles.menu_export,'Enable','on');
+            set(handles.toggle_meanplot,'Enable','on');
+        end
     end
     guidata(hObject, handles);
     drawnow();
@@ -520,7 +522,17 @@ function timer2_Callback(~,~,handles)
         stop(handles.timer2);
         update_plots(handles);
         set(handles.toggle_playpause,'String','Play','Value',0);
-        set(handles.menu_export,'Enable','on');
+        set(handles.menu_media,'Enable','on');
+        set(handles.menu_help,'Enable','on');
+        set(handles.listbox,'Enable','on');
+        set(handles.push_addfile,'Enable','on');
+        set(handles.push_delone,'Enable','on');
+        set(handles.push_delall,'Enable','on');
+        set(handles.push_analyze,'Enable','on');
+        if size(handles.AllRatingsX,2)>1
+            set(handles.menu_export,'Enable','on');
+            set(handles.toggle_meanplot,'Enable','on');
+        end
         handles.vlc.input.time = 0;
     else
         % Otherwise, wait
