@@ -98,7 +98,7 @@ function fig_review
         'FontSize',12, ...
         'Enable','off', ...
         'Callback',@toggle_meanplot_Callback);
-    handles.push_analyze = uicontrol('Style','togglebutton', ...
+    handles.push_analyze = uicontrol('Style','pushbutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
         'Position',[rc .15 10/100 4.5/100], ...
@@ -321,6 +321,7 @@ function push_addseries_Callback(hObject,~)
     plot_centroids(handles.figure_review,[]);
     guidata(handles.figure_review,handles);
     delete(w);
+    set(handles.push_analyze,'Enable','on');
     set(handles.toggle_meanplot,'Enable','on');
     set(handles.menu_export,'Enable','on');
     guidata(handles.figure_review,handles);
@@ -370,12 +371,14 @@ function push_delone_Callback(hObject,~)
     if isempty(handles.AllRatingsX)
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
+        set(handles.push_analyze,'Enable','off');
     elseif size(handles.AllRatingsX,2)==1
         disp = handles.AllFilenames{1};
         disp(disp=='_') = '-';
         rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(1,:)),1,disp)];
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
+        set(handles.push_analyze,'Enable','off');
     else
         for i = 1:size(handles.AllRatingsX,2)
             colorindex = mod(i,7); if colorindex==0, colorindex = 7; end
@@ -415,6 +418,7 @@ function push_delall_Callback(hObject,~)
     rows = {'<html><u>Annotation Files'};
     set(handles.toggle_meanplot,'Enable','off','Value',0);
     set(handles.menu_export,'Enable','off');
+    set(handles.push_analyze,'Enable','off');
     set(handles.listbox,'String',rows);
     % Update guidata with handles
     guidata(handles.figure_review,handles);
@@ -457,6 +461,13 @@ end
 
 % ===============================================================================
 
+function push_analyze_Callback(hObject,~)
+    handles = guidata(hObject);
+    fig_analyze(handles.AllRatingsX,handles.AllRatingsY,handles.AllFilenames);
+end
+
+% ===============================================================================
+
 function toggle_playpause_Callback(hObject,~)
     handles = guidata(hObject);
     if get(hObject,'Value')==get(hObject,'Max')
@@ -466,6 +477,7 @@ function toggle_playpause_Callback(hObject,~)
         set(hObject,'String','Pause');
         set(handles.menu_media,'Enable','off');
         set(handles.menu_export,'Enable','off');
+        set(handles.push_analyze,'Enable','off');
     else
         % Send pause() command to VLC and stop timer
         handles.vlc.playlist.togglePause();
@@ -684,7 +696,7 @@ function figure_review_SizeChanged(hObject,~)
             setpixelposition(handles.figure_review,[pos(1) pos(2) 1024 600]);
             movegui(handles.figure_review,'center');
         end
-        % Update the size and position -of the VLC controller
+        % Update the size and position of the VLC controller
         if isfield(handles,'vlc')
             move(handles.vlc,getpixelposition(handles.axis_guide));
         end
