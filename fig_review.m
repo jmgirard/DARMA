@@ -463,7 +463,7 @@ end
 
 function push_analyze_Callback(hObject,~)
     handles = guidata(hObject);
-    fig_analyze(handles.AllRatingsX,handles.AllRatingsY,handles.AllFilenames);
+    fig_analyze(handles.AllRatingsX,handles.AllRatingsY,handles.AllFilenames,handles.labelX,handles.labelY,handles.mag);
 end
 
 % ===============================================================================
