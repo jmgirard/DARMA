@@ -321,9 +321,9 @@ function push_addseries_Callback(hObject,~)
     plot_centroids(handles.figure_review,[]);
     guidata(handles.figure_review,handles);
     delete(w);
-    set(handles.push_analyze,'Enable','on');
-    set(handles.toggle_meanplot,'Enable','on');
     set(handles.menu_export,'Enable','on');
+    set(handles.toggle_meanplot,'Enable','on');
+    set(handles.push_analyze,'Enable','on');
     guidata(handles.figure_review,handles);
 end
 
@@ -471,22 +471,36 @@ end
 function toggle_playpause_Callback(hObject,~)
     handles = guidata(hObject);
     if get(hObject,'Value')==get(hObject,'Max')
-        % Send play() command to VLC and start timer
+        % Do this when play/resume toggle is clicked
         handles.vlc.playlist.play();
         start(handles.timer2);
         set(hObject,'String','Pause');
         set(handles.menu_media,'Enable','off');
         set(handles.menu_export,'Enable','off');
+        set(handles.menu_help,'Enable','off');
+        set(handles.listbox,'Enable','inactive');
+        set(handles.push_addfile,'Enable','off');
+        set(handles.push_delone,'Enable','off');
+        set(handles.push_delall,'Enable','off');
+        set(handles.toggle_meanplot,'Enable','off');
         set(handles.push_analyze,'Enable','off');
     else
-        % Send pause() command to VLC and stop timer
+        % Do this when pause toggle is clicked
         handles.vlc.playlist.togglePause();
         stop(handles.timer2);
-        set(hObject,'String','Resume','Value',0);
+        set(hObject,'String','Resume');
         set(handles.menu_media,'Enable','on');
         set(handles.menu_export,'Enable','on');
+        set(handles.menu_help,'Enable','on');
+        set(handles.listbox,'Enable','on');
+        set(handles.push_addfile,'Enable','on');
+        set(handles.push_delone,'Enable','on');
+        set(handles.push_delall,'Enable','on');
+        set(handles.toggle_meanplot,'Enable','on');
+        set(handles.push_analyze,'Enable','on');
     end
     guidata(hObject, handles);
+    drawnow();
 end
 
 % ===============================================================================
