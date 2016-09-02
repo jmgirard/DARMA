@@ -2,6 +2,7 @@ function [] = fig_analyze(X, Y, filenames, labelX, labelY, mag)
 %FIG_ANALYZE Window for the display of rating statistics
 %   License: https://darma.codeplex.com/license
 
+    if isempty(X), return; end
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_analyze = figure( ...
         'Name','DARMA: Analyze Ratings', ...
