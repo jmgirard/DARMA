@@ -495,10 +495,12 @@ function toggle_playpause_Callback(hObject,~)
         set(handles.push_addfile,'Enable','on');
         set(handles.push_delone,'Enable','on');
         set(handles.push_delall,'Enable','on');
-        set(handles.push_analyze,'Enable','on');
         if size(handles.AllRatingsX,2)>1
             set(handles.menu_export,'Enable','on');
             set(handles.toggle_meanplot,'Enable','on');
+        end
+        if ~isempty(handles.AllRatingsX)
+            set(handles.push_analyze,'Enable','on');
         end
     end
     guidata(hObject, handles);
