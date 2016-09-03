@@ -39,9 +39,6 @@ function fig_review
     handles.menu_remall = uimenu(handles.menu_annotations, ...
         'Label','Remove All Annotation Files', ...
         'Callback',@remall_Callback);
-    handles.menu_meanplot = uimenu(handles.menu_annotations, ...
-        'Label','Show Mean Series Plots', ...
-        'Callback',@meanplot_Callback);
     handles.menu_export = uimenu(handles.menu_annotations, ...
         'Label','Export Mean Series to New File', ...
         'Enable','off', ...
@@ -472,11 +469,10 @@ end
 function meanplot_Callback(hObject,~)
     handles = guidata(hObject);
     update_plots(handles);
-    if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Max')
+    if get(handles.toggle_meanplot,'Value')==1
         %If toggle is set to on, update list box with mean series
         set(handles.listbox,'Value',size(handles.AllRatingsX,2)+2);
         set(handles.toggle_meanplot,'String','Hide Mean Plot');
-        set(handles.menu_meanplot,'Checked','on');
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
             disp = handles.AllFilenames{i};
@@ -485,11 +481,10 @@ function meanplot_Callback(hObject,~)
         end
         rows = [cellstr(rows);'<html><font color="red">[M]</font> Mean Plot'];
         set(handles.listbox,'String',rows);
-    elseif get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
+    elseif get(handles.toggle_meanplot,'Value')==0
         %If toggle is set to off, update list box without mean series
         set(handles.listbox,'Value',1);
         set(handles.toggle_meanplot,'String','Show Mean Plot');
-        set(handles.menu_meanplot,'Checked','off');
         CS = get(gca,'ColorOrder');
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
