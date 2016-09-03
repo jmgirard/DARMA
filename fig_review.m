@@ -182,11 +182,10 @@ end
 
 function menu_openmedia_Callback(hObject,~)
     handles = guidata(hObject);
-    global settings;
     % Reset the GUI elements
     handles.vlc.playlist.items.clear();
     % Browse for, load, and get text_duration for a media file
-    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file:',fullfile(settings.folder));
+    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file:');
     if video_name==0, return; end
     try
         MRL = fullfile(video_path,video_name);
@@ -237,7 +236,6 @@ end
 
 function menu_export_Callback(hObject,~)
     handles = guidata(hObject);
-    global settings;
     if isempty(handles.MRL)
         %TODO: Pull this information from the annotation file
         name = ''; ext = '';
@@ -254,7 +252,7 @@ function menu_export_Callback(hObject,~)
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
     %Prompt user for output filepath
-    [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
+    [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',defaultname);
     if isequal(filename,0), return; end
     % Create export file as a CSV
     success = cell2csv(fullfile(pathname,filename),output);
