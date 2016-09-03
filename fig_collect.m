@@ -705,7 +705,6 @@ function timer_Callback(~,~,handles)
             if isempty(bin), continue; end
             mean_ratings(i,:) = [s_end,nanmean(bin(:,1)),nanmean(bin(:,2)),nanmax(bin(:,3))];
         end
-        disp(mean_ratings);
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
         [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,defaultname));

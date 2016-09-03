@@ -43,6 +43,7 @@ function fig_launcher
         'Callback','fig_review()');
     set(handles.figure_launcher,'Visible','on');
     guidata(handles.figure_launcher,handles);
+    addpath('Functions');
     % Check that VLC is installed
     axctl = actxcontrollist;
     index = strcmp(axctl(:,2),'VideoLAN.VLCPlugin.2');
