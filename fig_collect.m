@@ -371,6 +371,23 @@ end
 
 % =========================================================
 
+function program_reset(handles)
+    global recording;
+    handles = guidata(handles.figure_collect);
+    recording = 0;
+    % Update GUI elements to starting configuration
+    set(handles.text_report,'String','');
+    set(handles.text_filename,'String','');
+    set(handles.text_duration,'String','');
+    set(handles.toggle_playpause,'Enable','off','String','Begin Rating');
+    set(handles.menu_media,'Enable','on');
+    set(handles.menu_preview,'Enable','off');
+    set(handles.menu_help,'Enable','on');
+    guidata(handles.figure_collect,handles);
+end
+
+% =========================================================
+
 function figure_collect_CloseReq(hObject,~)
     handles = guidata(hObject);
     global recording;
@@ -394,24 +411,7 @@ function figure_collect_CloseReq(hObject,~)
     else
         %If ratings are not being collected, exit DARMA
         if strcmp(handles.timer.Running,'on'), stop(handles.timer); end
-        delete(handles.timer);
+        delete(timerfind);
         delete(handles.figure_collect);
     end
-end
-
-% =========================================================
-
-function program_reset(handles)
-    global recording;
-    handles = guidata(handles.figure_collect);
-    recording = 0;
-    % Update GUI elements to starting configuration
-    set(handles.text_report,'String','');
-    set(handles.text_filename,'String','');
-    set(handles.text_duration,'String','');
-    set(handles.toggle_playpause,'Enable','off','String','Begin Rating');
-    set(handles.menu_media,'Enable','on');
-    set(handles.menu_preview,'Enable','off');
-    set(handles.menu_help,'Enable','on');
-    guidata(handles.figure_collect,handles);
 end

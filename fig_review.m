@@ -789,7 +789,8 @@ end
 
 % =========================================================
 
-function figure_review_CloseRequest(~,~)
+function figure_review_CloseRequest(hObject,~)
+    handles = guidata(hObject);
     delete(timerfind);
-    delete(gcf);
+    delete(handles.figure_review);
 end
