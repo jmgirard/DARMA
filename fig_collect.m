@@ -143,7 +143,7 @@ function menu_openmedia_Callback(hObject,~)
     last_ts_sys = 0;
     handles.vlc.playlist.items.clear();
     % Browse for, load, and get text_duration for a media file
-    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file');
+    [video_name,video_path] = uigetfile({'*.*','All Files (*.*)'},'Select an audio or video file',handles.settings.defaultdir);
     if video_name==0, return; end
     try
         MRL = fullfile(video_path,video_name);
@@ -550,6 +550,22 @@ end
 
 % ===============================================================================
 
+function menu_defaultdir_Callback(hObject,~)
+    handles = guidata(hObject);
+    settings = handles.settings;
+    path = uigetdir(settings.defaultdir,'Select a new default folder:');
+    settings.defaultdir = path;
+    if isdeployed
+        save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
+    else
+        save('default.mat','settings');
+    end
+    handles.settings = settings;
+    guidata(handles.figure_collect,handles);
+end
+
+% ===============================================================================
+
 function menu_about_Callback(~,~)
     global version;
     msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3',version),'About','Help');
@@ -619,7 +635,7 @@ end
 
 function timer_Callback(~,~,handles)
     handles = guidata(handles.figure_collect);
-    global settings ratings last_ts_vlc last_ts_sys global_tic marker recording;
+    global ratings last_ts_vlc last_ts_sys global_tic marker recording;
     % Before playing
     if recording == 0
         [a,b,~] = read(handles.joy);
@@ -651,7 +667,7 @@ function timer_Callback(~,~,handles)
         x = a(1); y = a(2)*-1;
         if b(1)==0, color = 'r'; else color = 'g'; end
         set(marker,'XData',x,'YData',y,'MarkerFace',color);
-        ratings = [ratings; ts_vlc,x*settings.magnum,y*settings.magnum,b(1)];
+        ratings = [ratings; ts_vlc,x*handles.settings.magnum,y*handles.settings.magnum,b(1)];
         set(handles.text_timestamp,'String',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
         frac = (ts_vlc / handles.dur) * 100;
         set(handles.timebar,'Position',[0 0 frac 1]);
@@ -665,7 +681,7 @@ function timer_Callback(~,~,handles)
         % Average ratings per second of playback
         rating = ratings;
         disp(rating);
-        anchors = [0,(settings.binsizenum:settings.binsizenum:floor(handles.dur))];
+        anchors = [0,(handles.settings.binsizenum:handles.settings.binsizenum:floor(handles.dur))];
         mean_ratings = nan(length(anchors)-1,4);
         mean_ratings(:,1) = anchors(2:end)';
         for i = 1:length(anchors)-1
@@ -679,14 +695,14 @@ function timer_Callback(~,~,handles)
         disp(mean_ratings);
         % Prompt user to save the collected annotations
         [~,defaultname,ext] = fileparts(handles.MRL);
-        [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(settings.folder,defaultname));
+        [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,defaultname));
         if ~isequal(filename,0) && ~isequal(pathname,0)
             % Add metadata to mean ratings and timestamps
             output = [ ...
                 {'Time of Rating'},{datestr(now)},{''},{''}; ...
                 {'Multimedia File'},{sprintf('%s%s',defaultname,ext)},{''},{''}; ...
-                {'Magnitude'},{settings.magnum},{''},{''}; ...
-                {'Second'},{settings.labelX},{settings.labelY},{'Button'}; ...
+                {'Magnitude'},{handles.settings.magnum},{''},{''}; ...
+                {'Second'},{handles.settings.labelX},{handles.settings.labelY},{'Button'}; ...
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
             % Create export file depending on selected file type
@@ -709,14 +725,14 @@ end
 
 % =========================================================
 
-function timer_ErrorFcn(hObject,event,handles)
+function timer_ErrorFcn(hObject,event,~)
     disp(event.Data);
-    handles = guidata(handles.figure_collect);
-    global settings ratings;
+    handles = guidata(hObject);
+    global ratings;
     handles.vlc.playlist.togglePause();
     stop(handles.timer);
     msgbox(sprintf('Timer callback error:\n%s\nAn error log has been saved.',event.Data.message),'Error','error');
-    csvwrite(fullfile(settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
+    csvwrite(fullfile(handles.settings.folder,sprintf('%s.csv',datestr(now,30))),ratings);
     guidata(handles.figure_collect,handles);
 end
 
