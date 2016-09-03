@@ -566,6 +566,7 @@ function menu_defaultdir_Callback(hObject,~)
     handles = guidata(hObject);
     settings = handles.settings;
     path = uigetdir(settings.defaultdir,'Select a new default folder:');
+    if isequal(path,0), return; end
     settings.defaultdir = path;
     if isdeployed
         save(fullfile(ctfroot,'DARMA','default.mat'),'settings');

@@ -150,12 +150,12 @@ function fig_review
         'FontSize',16.0, ...
         'Enable','off', ...
         'Callback',@toggle_playpause_Callback);
-    % Invoke and configure WMP ActiveX Controller
+    % Invoke and configure VLC ActiveX Controller
     handles.vlc = actxcontrol('VideoLAN.VLCPlugin.2',getpixelposition(handles.axis_guide),handles.figure_review);
     handles.vlc.AutoPlay = 0;
     handles.vlc.Toolbar = 0;
     handles.vlc.FullscreenEnabled = 0;
-    % Prepopulate variables
+    % Preallocate variables
     set(handles.listbox,'String',{'<html><u>Annotation Files'},'Value',1);
     handles.AllFilenames = cell(0,1);
     handles.AllRatingsX = zeros(0,1);
