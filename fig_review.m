@@ -17,27 +17,41 @@ function fig_review
         'CloseRequestFcn',@figure_review_CloseRequest);
     %Create menu bar elements
     handles.menu_media = uimenu(handles.figure_review, ...
-        'Parent',handles.figure_review, ...
+        'Label','Media');        
+    handles.menu_openmedia = uimenu(handles.menu_media, ...
         'Label','Open Media File', ...
-        'Callback',@menu_media_Callback);
-    handles.menu_export = uimenu(handles.figure_review, ...
-        'Parent',handles.figure_review, ...
-        'Label','Export Mean Ratings', ...
+        'Callback',@menu_openmedia_Callback);
+    handles.menu_volume = uimenu(handles.menu_media, ...
+        'Label','Adjust Media Volume', ...
+        'Callback',@menu_volume_Callback);
+    handles.menu_closemedia = uimenu(handles.menu_media, ...
+        'Label','Close Media File', ...
+        'Enable','off', ...
+        'Callback',@menu_closemedia_Callback);
+    handles.menu_annotations = uimenu(handles.figure_review, ...
+        'Label','Annotations');
+    handles.menu_addseries = uimenu(handles.menu_annotations, ...
+        'Label','Import Annotation Files', ...
+        'Callback',@addseries_Callback);
+    handles.menu_remsel = uimenu(handles.menu_annotations, ...
+        'Label','Remove Selected Annotation File', ...
+        'Callback',@remsel_Callback);
+    handles.menu_remall = uimenu(handles.menu_annotations, ...
+        'Label','Remove All Annotation Files', ...
+        'Callback',@remall_Callback);
+    handles.menu_export = uimenu(handles.menu_annotations, ...
+        'Label','Export Mean Series to New File', ...
         'Enable','off', ...
         'Callback',@menu_export_Callback);
     handles.menu_help = uimenu(handles.figure_review, ...
-        'Parent',handles.figure_review, ...
         'Label','Help');
     handles.menu_about = uimenu(handles.menu_help, ...
-        'Parent',handles.menu_help, ...
         'Label','About', ...
         'Callback',@menu_about_Callback);
     handles.menu_document = uimenu(handles.menu_help, ...
-        'Parent',handles.menu_help, ...
         'Label','Documentation', ...
         'Callback',@menu_document_Callback);
     handles.menu_report = uimenu(handles.menu_help, ...
-        'Parent',handles.menu_help, ...
         'Label','Report Issues', ...
         'Callback',@menu_report_Callback);
     pause(0.1);
@@ -75,21 +89,21 @@ function fig_review
         'Position',[rc .35 10/100 4.5/100], ...
         'String','Add Annotations', ...
         'FontSize',12, ...
-        'Callback',@push_addseries_Callback);
-    handles.push_delone = uicontrol('Style','pushbutton', ...
+        'Callback',@addseries_Callback);
+    handles.push_remsel = uicontrol('Style','pushbutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
         'Position',[rc .30 10/100 4.5/100], ...
         'String','Remove Selected', ...
         'FontSize',12, ...
-        'Callback',@push_delone_Callback);
-    handles.push_delall = uicontrol('Style','pushbutton', ...
+        'Callback',@remsel_Callback);
+    handles.push_remall = uicontrol('Style','pushbutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
         'Position',[rc .25 10/100 4.5/100], ...
         'String','Remove All Files', ...
         'FontSize',12, ...
-        'Callback',@push_delall_Callback);
+        'Callback',@remall_Callback);
     handles.toggle_meanplot = uicontrol('Style','togglebutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
@@ -159,7 +173,7 @@ end
 
 % ===============================================================================
 
-function menu_media_Callback(hObject,~)
+function menu_openmedia_Callback(hObject,~)
     handles = guidata(hObject);
     global settings;
     % Reset the GUI elements
@@ -180,9 +194,35 @@ function menu_media_Callback(hObject,~)
         handles.vlc.input.time = 0;
         handles.dur = handles.vlc.input.length / 1000;
         set(handles.toggle_playpause,'String','Play','Enable','on');
+        set(handles.menu_closemedia,'Enable','on');
     catch err
-        msgbox(err.message,'Error loading media file.'); return;
+        msgbox(err.message,'Error loading media file.','error'); return;
     end
+    guidata(handles.figure_review,handles);
+end
+
+% ===============================================================================
+
+function menu_volume_Callback(hObject,~)
+    handles = guidata(hObject);
+    ovol = handles.vlc.audio.volume;
+    nvol = inputdlg(sprintf('Enter volume percentage:\n0=Mute, 100=Full Sound'),'',1,{num2str(ovol)});
+    nvol = str2double(nvol);
+    if isempty(nvol), return; end
+    if isnan(nvol), return; end
+    if nvol < 0, nvol = 0; end
+    if nvol > 100, nvol = 100; end
+    handles.vlc.audio.volume = nvol;
+    guidata(handles.figure_review,handles);
+end
+
+% ===============================================================================
+
+function menu_closemedia_Callback(hObject,~)
+    handles = guidata(hObject);
+    handles.vlc.playlist.stop();
+    handles.vlc.playlist.items.clear();
+    set(handles.menu_closemedia,'Enable','off');
     guidata(handles.figure_review,handles);
 end
 
@@ -242,7 +282,7 @@ end
 
 % ===============================================================================
 
-function push_addseries_Callback(hObject,~)
+function addseries_Callback(hObject,~)
     handles = guidata(hObject);
     if get(handles.toggle_meanplot,'Value')==1
         msgbox('Please turn off mean plotting before adding annotation files.');
@@ -330,7 +370,7 @@ end
 
 % ===============================================================================
 
-function push_delone_Callback(hObject,~)
+function remsel_Callback(hObject,~)
     handles = guidata(hObject);
     if get(handles.toggle_meanplot,'Value')==1
         msgbox('Please turn off mean plotting before removing annotation files.');
@@ -396,7 +436,7 @@ end
 
 % ===============================================================================
 
-function push_delall_Callback(hObject,~)
+function remall_Callback(hObject,~)
     handles = guidata(hObject);
     if get(handles.toggle_meanplot,'Value')==1
         msgbox('Please turn off mean plotting before removing annotation files.');
@@ -480,8 +520,8 @@ function toggle_playpause_Callback(hObject,~)
         set(handles.menu_help,'Enable','off');
         set(handles.listbox,'Enable','inactive');
         set(handles.push_addfile,'Enable','off');
-        set(handles.push_delone,'Enable','off');
-        set(handles.push_delall,'Enable','off');
+        set(handles.push_remsel,'Enable','off');
+        set(handles.push_remall,'Enable','off');
         set(handles.toggle_meanplot,'Enable','off');
         set(handles.push_analyze,'Enable','off');
     else
@@ -493,8 +533,8 @@ function toggle_playpause_Callback(hObject,~)
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
-        set(handles.push_delone,'Enable','on');
-        set(handles.push_delall,'Enable','on');
+        set(handles.push_remsel,'Enable','on');
+        set(handles.push_remall,'Enable','on');
         if size(handles.AllRatingsX,2)>1
             set(handles.menu_export,'Enable','on');
             set(handles.toggle_meanplot,'Enable','on');
@@ -528,8 +568,8 @@ function timer2_Callback(~,~,handles)
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
-        set(handles.push_delone,'Enable','on');
-        set(handles.push_delall,'Enable','on');
+        set(handles.push_remsel,'Enable','on');
+        set(handles.push_remall,'Enable','on');
         set(handles.push_analyze,'Enable','on');
         if size(handles.AllRatingsX,2)>1
             set(handles.menu_export,'Enable','on');
