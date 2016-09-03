@@ -516,6 +516,7 @@ function toggle_playpause_Callback(hObject,~)
         start(handles.timer2);
         set(hObject,'String','Pause');
         set(handles.menu_media,'Enable','off');
+        set(handles.menu_annotations,'Enable','off');
         set(handles.menu_export,'Enable','off');
         set(handles.menu_help,'Enable','off');
         set(handles.listbox,'Enable','inactive');
@@ -530,6 +531,7 @@ function toggle_playpause_Callback(hObject,~)
         stop(handles.timer2);
         set(hObject,'String','Resume');
         set(handles.menu_media,'Enable','on');
+        set(handles.menu_annotations,'Enable','on');
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
@@ -565,6 +567,7 @@ function timer2_Callback(~,~,handles)
         update_plots(handles);
         set(handles.toggle_playpause,'String','Play','Value',0);
         set(handles.menu_media,'Enable','on');
+        set(handles.menu_annotations,'Enable','on');
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
