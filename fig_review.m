@@ -293,9 +293,8 @@ function addseries_Callback(hObject,~)
         msgbox('Please turn off mean plotting before adding annotation files.');
         return;
     end
-    global settings;
     % Prompt user for import file.
-    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations',fullfile(settings.folder),'MultiSelect','on');
+    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations','','MultiSelect','on');
     if ~iscell(filenames)
         if filenames==0, return; end
         filenames = {filenames};
