@@ -2,6 +2,12 @@ function fig_collect
 %FIG_COLLECT Window for the collection of ratings
 % License: https://darma.codeplex.com/license
 
+    % Get default settings
+    if isdeployed
+        handles.settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
+    else
+        handles.settings = importdata('default.mat');
+    end
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_collect = figure( ...
@@ -74,6 +80,18 @@ function fig_collect
         05,0.5,'00:00:00','HorizontalAlignment','center');
     handles.text_duration = text(handles.axis_info, ...
         95,0.5,'00:00:00','HorizontalAlignment','center');
+    pos = getpixelposition(handles.figure_collect);
+    handles.table_info = uitable(handles.figure_collect, ...
+        'Units','normalized', ...
+        'Position',[.65 .02 .22 .05], ...
+        'RowName',[],'ColumnName',{'Bin Size','Axis Magnitude'}, ...
+        'ColumnWidth',num2cell(repmat(round(pos(3)*.22 / 2 - 2),1,2)),'FontSize',10, ...
+        'Data',{handles.settings.binsizenum,handles.settings.magnum});
+    jscrollpane = findjobj(handles.table_info);
+    jTable = jscrollpane.getViewport.getView;
+    cellStyle = jTable.getCellStyleAt(0,0);
+    cellStyle.setHorizontalAlignment(cellStyle.CENTER);
+    jTable.repaint;
     handles.toggle_playpause = uicontrol(handles.figure_collect, ...
         'Style','togglebutton', ...
         'Units','Normalized', ...
@@ -117,12 +135,6 @@ function fig_collect
     global global_tic recording;
     global_tic = tic;
     recording = 0;
-    % Get default settings
-    if isdeployed
-        handles.settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
-    else
-        handles.settings = importdata('default.mat');
-    end
     % Save handles to guidata
     handles.figure_collect.Visible = 'on';
     guidata(handles.figure_collect,handles);
@@ -767,11 +779,17 @@ function figure_collect_SizeChanged(hObject,~)
         if pos(3) < 1024 || pos(4) < 600
             setpixelposition(handles.figure_collect,[pos(1) pos(2) 1024 600]);
             movegui(handles.figure_collect,'center');
+            set(handles.toggle_playpause,'FontSize',12);
+            set(handles.table_info,'ColumnName',[]);
+        else
+            set(handles.toggle_playpause,'FontSize',14);
+            set(handles.table_info,'ColumnName',{'Bin Size','Axis Magnitude'});
         end
         % Update the size and position of the VLC controller
         if isfield(handles,'vlc')
             move(handles.vlc,getpixelposition(handles.axis_guide));
         end
+        set(handles.table_info,'ColumnWidth',num2cell(repmat(round(pos(3)*.22 / 2 - 2),1,2)));
     end
 end
 
