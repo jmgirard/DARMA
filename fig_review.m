@@ -138,6 +138,7 @@ function fig_review
         'XLim',[-100,100],'XTick',linspace(-100,100,3),'XTickLabel',[],'XMinorGrid','on', ...
         'Box','on','NextPlot','add', ...
         'LooseInset',[0 0 0 0]);
+    axis square;
     handles.axis_C.YRuler.MinorTickValues = linspace(-100,100,5);
     handles.axis_C.XRuler.MinorTickValues = linspace(-100,100,5);
     set(handles.axis_C,'YGrid','on','XGrid','on','GridColor',[.5 .5 .5],'GridAlpha',1);
