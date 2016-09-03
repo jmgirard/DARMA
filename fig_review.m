@@ -43,6 +43,12 @@ function fig_review
         'Label','Export Mean Series to New File', ...
         'Enable','off', ...
         'Callback',@menu_export_Callback);
+    handles.menu_analyze = uimenu(handles.figure_review, ...
+        'Label','Analyze');
+    handles.menu_analyzeratings = uimenu(handles.menu_analyze, ...
+        'Label','Analyze Ratings', ...
+        'Enable','off', ...
+        'Callback',@analyzeratings_Callback);
     handles.menu_help = uimenu(handles.figure_review, ...
         'Label','Help');
     handles.menu_about = uimenu(handles.menu_help, ...
@@ -119,7 +125,7 @@ function fig_review
         'String','Analyze Ratings', ...
         'FontSize',12, ...
         'Enable','off', ...
-        'Callback',@push_analyze_Callback);
+        'Callback',@analyzeratings_Callback);
     handles.axis_guide = axes('Units','normalized', ...
         'Parent',handles.figure_review, ...
         'Position',[lc*2 .42 .50 .565], ...
@@ -360,6 +366,7 @@ function addseries_Callback(hObject,~)
     set(handles.listbox,'String',rows,'Value',1,'ButtonDownFcn',@listbox_Callback);
     plot_centroids(handles.figure_review,[]);
     delete(w);
+    set(handles.menu_analyzeratings,'Enable','on');
     set(handles.push_analyze,'Enable','on');
     if size(handles.AllRatingsX,2)>1
         set(handles.menu_export,'Enable','on');
@@ -412,6 +419,7 @@ function remsel_Callback(hObject,~)
     if isempty(handles.AllRatingsX)
         set(handles.toggle_meanplot,'Enable','off','Value',0);
         set(handles.menu_export,'Enable','off');
+        set(handles.menu_analyzeratings,'Enable','off');
         set(handles.push_analyze,'Enable','off');
     elseif size(handles.AllRatingsX,2)==1
         disp = handles.AllFilenames{1};
@@ -458,6 +466,7 @@ function remall_Callback(hObject,~)
     rows = {'<html><u>Annotation Files'};
     set(handles.toggle_meanplot,'Enable','off','Value',0);
     set(handles.menu_export,'Enable','off');
+    set(handles.menu_analyzeratings,'Enable','off');
     set(handles.push_analyze,'Enable','off');
     set(handles.listbox,'String',rows);
     % Update guidata with handles
@@ -501,7 +510,7 @@ end
 
 % ===============================================================================
 
-function push_analyze_Callback(hObject,~)
+function analyzeratings_Callback(hObject,~)
     handles = guidata(hObject);
     fig_analyze(handles.AllRatingsX,handles.AllRatingsY,handles.AllFilenames,handles.labelX,handles.labelY,handles.mag);
 end
@@ -518,6 +527,7 @@ function toggle_playpause_Callback(hObject,~)
         set(handles.menu_media,'Enable','off');
         set(handles.menu_annotations,'Enable','off');
         set(handles.menu_export,'Enable','off');
+        set(handles.menu_analyze,'Enable','off');
         set(handles.menu_help,'Enable','off');
         set(handles.listbox,'Enable','inactive');
         set(handles.push_addfile,'Enable','off');
@@ -532,6 +542,7 @@ function toggle_playpause_Callback(hObject,~)
         set(hObject,'String','Resume');
         set(handles.menu_media,'Enable','on');
         set(handles.menu_annotations,'Enable','on');
+        set(handles.menu_analyze,'Enable','on');
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
@@ -542,6 +553,7 @@ function toggle_playpause_Callback(hObject,~)
             set(handles.toggle_meanplot,'Enable','on');
         end
         if ~isempty(handles.AllRatingsX)
+            set(handles.menu_analyzeratings,'Enable','on');
             set(handles.push_analyze,'Enable','on');
         end
     end
@@ -568,6 +580,7 @@ function timer2_Callback(~,~,handles)
         set(handles.toggle_playpause,'String','Play','Value',0);
         set(handles.menu_media,'Enable','on');
         set(handles.menu_annotations,'Enable','on');
+        set(handles.menu_analyze,'Enable','on');
         set(handles.menu_help,'Enable','on');
         set(handles.listbox,'Enable','on');
         set(handles.push_addfile,'Enable','on');
@@ -776,9 +789,7 @@ end
 
 % =========================================================
 
-function figure_review_CloseRequest(hObject,~)
-    handles = guidata(hObject);
-    % Remove timer as part of cleanup
-    delete(handles.timer2);
+function figure_review_CloseRequest(~,~)
+    delete(timerfind);
     delete(gcf);
 end
