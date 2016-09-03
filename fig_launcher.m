@@ -3,7 +3,7 @@ function fig_launcher
 % License: https://darma.codeplex.com/license
 
     global version;
-    version = 5.04;
+    version = 6.00;
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_launcher = figure( ...

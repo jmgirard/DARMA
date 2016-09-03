@@ -32,6 +32,14 @@ function fig_collect
         'Label','Close Media File', ...
         'Enable','off', ...
         'Callback',@menu_closemedia_Callback);
+    handles.menu_settings = uimenu(handles.figure_collect, ...
+        'Label','Settings');
+    handles.menu_axislabels = uimenu(handles.menu_settings, ...
+        'Label','Set Axis Labels', ...
+        'Callback',@menu_axislabels_Callback);
+    handles.menu_binsize = uimenu(handles.menu_settings, ...
+        'Label','Set Bin Size', ...
+        'Callback',@menu_binsize_Callback);
     handles.menu_help = uimenu(handles.figure_collect, ...
         'Label','Help');
     handles.menu_about = uimenu(handles.menu_help, ...
@@ -171,7 +179,7 @@ function menu_volume_Callback(hObject,~)
     guidata(handles.figure_collect,handles);
 end
 
-% =========================================================
+% ===============================================================================
 
 function menu_preview_Callback(hObject,~)
     handles = guidata(hObject);
@@ -191,6 +199,82 @@ function menu_closemedia_Callback(hObject,~)
     set(handles.text_filename,'String','Media Filename');
     set(handles.text_duration,'String','00:00:00');
     guidata(handles.figure_collect,handles);
+end
+
+% ===============================================================================
+
+function menu_axislabels_Callback(hObject,~)
+    handles = guidata(hObject);
+    stop(handles.timer);
+    fig_axislabels();
+    uiwait(gcf);
+    global settings;
+    set(handles.l1,'String',settings.label1);
+    set(handles.l2,'String',settings.label2);
+    set(handles.l3,'String',settings.label3);
+    set(handles.l4,'String',settings.label4);
+    set(handles.l5,'String',settings.label5);
+    set(handles.l6,'String',settings.label6);
+    set(handles.l7,'String',settings.label7);
+    set(handles.l8,'String',settings.label8);
+    start(handles.timer);
+    guidata(handles.figure_collect,handles);
+end
+
+% ===============================================================================
+
+function menu_binsize_Callback(hObject,~)
+    handles = guidata(hObject);
+    global settings;
+    b = dialog('Position',[0 0 500 200],'Name','Set Bin Size');
+    movegui(b,'center');
+    uicontrol(b, ...
+        'Style','text', ...
+        'Units','Normalized', ...
+        'Position',[.10 .50 .80 .40], ...
+        'String','DARMA samples the joystick at 20 Hz. Samples are then averaged into temporal bins which are output in an annotation file. Bin size determines how long each bin is and thus how many samples contribute to it. Select a bin size below:');
+    popup_bin = uicontrol(b, ...
+        'Style','popup', ...
+        'Units','Normalized', ...
+        'Position',[.10 .35 .80 .20], ...
+        'String',{'0.25 sec (each bin averages 5 samples)','0.50 sec (each bin averages 10 samples)','1.00 sec (each bin averages 20 samples)','2.00 sec (each bin averages 40 samples)','4.00 sec (each bin averages 80 samples)'}, ...
+        'Value',settings.binsizeval);
+    uicontrol(b, ...
+        'Style','pushbutton', ...
+        'Units','Normalized', ...
+        'Position',[.10 .10 .30 .20], ...
+        'String','Save as Default', ...
+        'Callback',@push_save_Callback);
+    uicontrol(b, ...
+        'Style','pushbutton', ...
+        'Units','Normalized', ...
+        'Position',[.60 .10 .30 .20], ...
+        'String','Apply Bin Size', ...
+        'Callback',@push_apply_Callback);
+    stop(handles.timer);
+    uiwait(b);
+    start(handles.timer);
+    function push_save_Callback(~,~)
+        binsizeval = popup_bin.Value;
+        binsizenum = popup_bin.String{binsizeval};
+        binsizenum = str2double(binsizenum(1,1:4));
+        settings.binsizeval = binsizeval;
+        settings.binsizenum = binsizenum;
+        if isdeployed
+            save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
+        else
+            save('default.mat','settings');
+        end
+        msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
+    end
+    function push_apply_Callback(~,~)
+        binsizeval = popup_bin.Value;
+        binsizenum = popup_bin.String{binsizeval};
+        binsizenum = str2double(binsizenum(1,1:4));
+        settings.binsizeval = binsizeval;
+        settings.binsizenum = binsizenum;
+        delete(b);
+    end
 end
 
 % ===============================================================================
@@ -309,7 +393,7 @@ function timer_Callback(~,~,handles)
         % Average ratings per second of playback
         rating = ratings;
         disp(rating);
-        anchors = [0,(settings.bin:settings.bin:floor(handles.dur))];
+        anchors = [0,(settings.binsizenum:settings.binsizenum:floor(handles.dur))];
         mean_ratings = nan(length(anchors)-1,4);
         mean_ratings(:,1) = anchors(2:end)';
         for i = 1:length(anchors)-1
@@ -372,14 +456,14 @@ function create_axis(handles)
     axes(handles.axis_circle);
     plot(handles.axis_circle,[-1,1],[0,0],'k-');
     plot(handles.axis_circle,[0,0],[-1,1],'k-');
-    text(0.0,0.9,settings.label1,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(-0.64,0.64,settings.label2,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.64,0.64,settings.label3,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5); 
-    text(-0.9,0.0,settings.label4,'HorizontalAlignment','left','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.9,0.0,settings.label5,'HorizontalAlignment','right','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(-0.64,-0.64,settings.label6,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.64,-0.64,settings.label7,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
-    text(0.0,-0.9,settings.label8,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l1 = text(0.0,0.9,settings.label1,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l2 = text(-0.64,0.64,settings.label2,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l3 = text(0.64,0.64,settings.label3,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5); 
+    handles.l4 = text(-0.9,0.0,settings.label4,'HorizontalAlignment','left','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l5 = text(0.9,0.0,settings.label5,'HorizontalAlignment','right','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l6 = text(-0.64,-0.64,settings.label6,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l7 = text(0.64,-0.64,settings.label7,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
+    handles.l8 = text(0.0,-0.9,settings.label8,'HorizontalAlignment','center','BackgroundColor',[1 1 1],'FontSize',12,'Margin',5);
     marker = plot(handles.axis_circle,0,0,'ko','LineWidth',2,'MarkerSize',15,'MarkerFaceColor','white');
     guidata(handles.figure_collect,handles);
 end
