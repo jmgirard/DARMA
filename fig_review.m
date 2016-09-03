@@ -39,6 +39,9 @@ function fig_review
     handles.menu_remall = uimenu(handles.menu_annotations, ...
         'Label','Remove All Annotation Files', ...
         'Callback',@remall_Callback);
+    handles.menu_meanplot = uimenu(handles.menu_annotations, ...
+        'Label','Show Mean Series Plots', ...
+        'Callback',@meanplot_Callback);
     handles.menu_export = uimenu(handles.menu_annotations, ...
         'Label','Export Mean Series to New File', ...
         'Enable','off', ...
@@ -111,7 +114,7 @@ function fig_review
         'String','Show Mean Plot', ...
         'FontSize',12, ...
         'Enable','off', ...
-        'Callback',@toggle_meanplot_Callback);
+        'Callback',@meanplot_Callback);
     handles.push_analyze = uicontrol('Style','pushbutton', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
@@ -426,7 +429,7 @@ function remsel_Callback(hObject,~)
             disp(disp=='_') = '-';
             rows = [cellstr(rows);sprintf('<html><font color="%s">[%02d]</font> %s',rgbconv(CS(colorindex,:)),i,disp)];
         end
-        toggle_meanplot_Callback(handles.toggle_meanplot,[]);
+        meanplot_Callback(handles.toggle_meanplot,[]);
     end
     set(handles.listbox,'String',rows);
     listbox_Callback(handles.listbox,[]);
@@ -466,13 +469,14 @@ end
 
 % ===============================================================================
 
-function toggle_meanplot_Callback(hObject,~)
+function meanplot_Callback(hObject,~)
     handles = guidata(hObject);
     update_plots(handles);
-    if get(hObject,'Value')==get(hObject,'Max')
+    if get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Max')
         %If toggle is set to on, update list box with mean series
         set(handles.listbox,'Value',size(handles.AllRatingsX,2)+2);
-        set(hObject,'String','Hide Mean Plot');
+        set(handles.toggle_meanplot,'String','Hide Mean Plot');
+        set(handles.menu_meanplot,'Checked','on');
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
             disp = handles.AllFilenames{i};
@@ -481,10 +485,11 @@ function toggle_meanplot_Callback(hObject,~)
         end
         rows = [cellstr(rows);'<html><font color="red">[M]</font> Mean Plot'];
         set(handles.listbox,'String',rows);
-    elseif get(hObject,'Value')==get(hObject,'Min')
+    elseif get(handles.toggle_meanplot,'Value')==get(handles.toggle_meanplot,'Min')
         %If toggle is set to off, update list box without mean series
         set(handles.listbox,'Value',1);
-        set(hObject,'String','Show Mean Plot');
+        set(handles.toggle_meanplot,'String','Show Mean Plot');
+        set(handles.menu_meanplot,'Checked','off');
         CS = get(gca,'ColorOrder');
         rows = {'<html><u>Annotation Files'};
         for i = 1:size(handles.AllRatingsX,2)
