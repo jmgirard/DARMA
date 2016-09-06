@@ -137,8 +137,7 @@ function fig_review
         'YLim',[-100,100],'YTick',linspace(-100,100,3),'YTickLabel',[],'YMinorGrid','on', ...
         'XLim',[-100,100],'XTick',linspace(-100,100,3),'XTickLabel',[],'XMinorGrid','on', ...
         'Box','on','NextPlot','add', ...
-        'LooseInset',[0 0 0 0]);
-    axis square;
+        'LooseInset',[0 0 0 0],'PlotBoxAspectRatioMode','manual','PlotBoxAspectRatio',[1 1 1]);
     handles.axis_C.YRuler.MinorTickValues = linspace(-100,100,5);
     handles.axis_C.XRuler.MinorTickValues = linspace(-100,100,5);
     set(handles.axis_C,'YGrid','on','XGrid','on','GridColor',[.5 .5 .5],'GridAlpha',1);
