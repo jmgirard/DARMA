@@ -25,7 +25,7 @@ Users must agree to cite the [following article](https://osf.io/xhmu6/) in all p
 
 Girard, J. M., & Wright, A. G. C. (in press). DARMA: Dual Axis Rating and Media Annotation. *Behavior Research Methods*.
 
-```bibtex
+```
 @article{DARMA,
 author = {Girard, Jeffrey M and Wright, Aidan G C},
 journal = {Behavior Research Methods},
