@@ -29,7 +29,7 @@ Girard, J. M., & Wright, A. G. C. (in press). DARMA: Dual Axis Rating and Media 
 @article{DARMA,
 author = {Girard, Jeffrey M and Wright, Aidan G C},
 journal = {Behavior Research Methods},
-title = {{DARMA: Software for Dual Axis Rating and Media Annotation}},
+title = {DARMA: Software for Dual Axis Rating and Media Annotation},
 year = {in press}
 }
 ```
