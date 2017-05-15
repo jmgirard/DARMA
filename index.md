@@ -5,8 +5,8 @@ Software for Dual Axis Rating and Media Annotation
 DARMA is a media annotation program that collects continuous ratings while displaying audio and video files. It is designed to be highly user-friendly and easily customizable. DARMA enables researchers and study participants to provide moment-by-moment ratings of multimedia files using a computer joystick. The rating scale can be configured on a number of parameters including its labels and numerical range. Annotations can be displayed alongside the multimedia file and saved for easy import into statistical analysis software. DARMA provides a tool for researchers in affective computing, human-computer interaction, and the social sciences who need to capture the unfolding of subjective experience and observable behavior over time.
 
 ## Download
-* The latest release of DARMA will always be available from <https://github.com/jmgirard/DARMA/releases>
-* Documentation for DARMA can be accessed via the wiki at <https://github.com/jmgirard/DARMA/wiki>
+* The latest release is available from <https://github.com/jmgirard/DARMA/releases>
+* Documentation is available from <https://github.com/jmgirard/DARMA/wiki>
 
 ## Screenshots
 <table width="100%">
