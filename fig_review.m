@@ -269,19 +269,19 @@ end
 
 function menu_about_Callback(~,~)
     global version;
-    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.codeplex.com\nGNU General Public License v3',version),'About','Help');
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
 end
 
 % ===============================================================================
 
 function menu_document_Callback(~,~)
-    web('http://darma.codeplex.com/documentation','-browser');
+    web('https://github.com/jmgirard/DARMA/wiki','-browser');
 end
 
 % ===============================================================================
 
 function menu_report_Callback(~,~)
-    web('http://darma.codeplex.com/discussions','-browser');
+    web('https://github.com/jmgirard/DARMA/issues','-browser');
 end
 
 % ===============================================================================

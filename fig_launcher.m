@@ -57,16 +57,16 @@ function fig_launcher
     end
     % Check for updates
     try
-        rss = urlread('https://darma.codeplex.com/project/feeds/rss?ProjectRSSFeed=codeplex%3a%2f%2frelease%2fdarma');
+        rss = urlread('https://github.com/jmgirard/DARMA/releases');
         index = strfind(rss,'DARMA v');
-        newest = str2double(rss(index(1)+7:index(1)+11));
+        newest = str2double(rss(index(1)+7:index(1)+10));
         current = version;
         if current < newest
             choice = questdlg(sprintf('DARMA has detected that an update is available.\nOpen download page?'),...
                 'DARMA','Yes','No','Yes');
             switch choice
                 case 'Yes'
-                    web('http://darma.codeplex.com/releases/','-browser');
+                    web('https://github.com/jmgirard/DARMA/releases','-browser');
                     delete(handles.figure_launcher);
             end
         end
@@ -78,7 +78,7 @@ function website(~,~)
     choice = questdlg('Open DARMA website in browser?','DARMA','Yes','No','Yes');
     switch choice
         case 'Yes'
-            web('http://darma.codeplex.com/','-browser');
+            web('http://darma.jmgirard.com/','-browser');
         otherwise
             return;
     end
