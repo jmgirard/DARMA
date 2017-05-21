@@ -1,6 +1,6 @@
 function [] = fig_analyze(X, Y, filenames, labelX, labelY, mag)
 %FIG_ANALYZE Window for the display of rating statistics
-%   License: https://darma.codeplex.com/license
+%   License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     if isempty(X), return; end
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
