@@ -1,6 +1,6 @@
 function fig_launcher
 %FIG_LAUNCHER Window to launch the other windows
-% License: https://darma.codeplex.com/license
+% License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     global version;
     version = 6.00;

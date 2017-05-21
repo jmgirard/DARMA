@@ -1,6 +1,6 @@
 function fig_review
 %FIG_REVIEW Window for the review of existing ratings
-% License: https://darma.codeplex.com/license
+% License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     % Create and maximize annotation window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');

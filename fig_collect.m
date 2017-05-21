@@ -1,6 +1,6 @@
 function fig_collect
 %FIG_COLLECT Window for the collection of ratings
-% License: https://darma.codeplex.com/license
+% License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     % Get default settings
     if isdeployed
