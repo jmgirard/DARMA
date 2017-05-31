@@ -11,14 +11,13 @@ function fig_collect
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_collect = figure( ...
-        'Units','normalized', ...
         'Name','DARMA: Collect Ratings', ...
         'MenuBar','none', ...
         'ToolBar','none', ...
         'NumberTitle','off', ...
         'Visible','off', ...
         'Color',defaultBackground, ...
-        'SizeChangedFcn',@figure_collect_SizeChanged, ...
+        'ResizeFcn',@figure_collect_Resize, ...
         'KeyPressFcn',@figure_collect_KeyPress, ...
         'CloseRequestFcn',@figure_collect_CloseReq);
     % Create menu bar elements
@@ -63,8 +62,13 @@ function fig_collect
     handles.menu_report = uimenu(handles.menu_help, ...
         'Label','Report Issues', ...
         'Callback',@menu_report_Callback);
-    pause(0.1);
-    set(handles.figure_collect,'Position',[0.1 0.1 0.8 0.8]);
+    % Set minimum size
+    set(handles.figure_collect,'Units','normalized','Position',[0.1,0.1,0.8,0.8],'Visible','on');
+    drawnow;
+    jFig = get(handle(handles.figure_collect),'JavaFrame');
+    jClient = jFig.fHG2Client;
+    jWindow = jClient.getWindow;
+    jWindow.setMinimumSize(java.awt.Dimension(1024,768));
     % Create uicontrol elements
     handles.axis_info = axes(handles.figure_collect, ...
         'Units','normalized', ...
@@ -582,7 +586,7 @@ end
 
 function menu_about_Callback(~,~)
     global version;
-    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2017\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
 end
 
 % ===============================================================================
@@ -772,20 +776,12 @@ end
 
 % =========================================================
 
-function figure_collect_SizeChanged(hObject,~)
+function figure_collect_Resize(hObject,~)
     handles = guidata(hObject);
     if isfield(handles,'figure_collect')
-        pos = getpixelposition(handles.figure_collect);
         % Force to remain above a minimum size
-        if pos(3) < 1024 || pos(4) < 600
-            setpixelposition(handles.figure_collect,[pos(1) pos(2) 1024 600]);
-            movegui(handles.figure_collect,'center');
-            set(handles.toggle_playpause,'FontSize',12);
-            set(handles.table_info,'ColumnName',[]);
-        else
             set(handles.toggle_playpause,'FontSize',14);
             set(handles.table_info,'ColumnName',{'Bin Size','Axis Magnitude'});
-        end
         % Update the size and position of the VLC controller
         if isfield(handles,'vlc')
             move(handles.vlc,getpixelposition(handles.axis_guide));

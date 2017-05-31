@@ -5,15 +5,13 @@ function fig_review
     % Create and maximize annotation window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_review = figure( ...
-        'Units','normalized', ...
-        'Position',[0.1 0.1 0.8 0.8], ...
         'Name','DARMA: Review Ratings', ...
         'NumberTitle','off', ...
         'MenuBar','none', ...
         'ToolBar','none', ...
         'Visible','off', ...
         'Color',defaultBackground, ...
-        'SizeChangedFcn',@figure_review_SizeChanged, ...
+        'ResizeFcn',@figure_review_Resize, ...
         'CloseRequestFcn',@figure_review_CloseRequest);
     %Create menu bar elements
     handles.menu_media = uimenu(handles.figure_review, ...
@@ -60,8 +58,15 @@ function fig_review
     handles.menu_report = uimenu(handles.menu_help, ...
         'Label','Report Issues', ...
         'Callback',@menu_report_Callback);
-    pause(0.1);
+    % Set minimum size
+    set(handles.figure_review,'Units','normalized','Position',[0.1,0.1,0.8,0.8],'Visible','on');
+    drawnow;
+    jFig = get(handle(handles.figure_review),'JavaFrame');
+    jClient = jFig.fHG2Client;
+    jWindow = jClient.getWindow;
+    jWindow.setMinimumSize(java.awt.Dimension(1024,768));
     %Create uicontrol elements
+    global ts_X ts_Y;
     lc = .01; rc = .89;
     handles.axis_X = axes('Units','Normalized', ...
         'Parent',handles.figure_review, ...
@@ -73,6 +78,9 @@ function fig_review
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'X'});
     ylabel('X Axis','FontSize',10);
+    hold on;
+    ts_X = plot(handles.axis_X,[0,0],[-100,100],'k');
+    hold off;
     handles.axis_Y = axes('Units','Normalized', ...
         'Parent',handles.figure_review, ...
         'TickLength',[0.005 0], ...
@@ -83,6 +91,9 @@ function fig_review
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'Y'});
     ylabel('Y Axis','FontSize',10);
+    hold on;
+    ts_Y = plot(handles.axis_Y,[0,0],[-100,100],'k');
+    hold off;
     handles.listbox = uicontrol('Style','listbox', ...
         'Parent',handles.figure_review, ...
         'Units','normalized', ...
@@ -200,6 +211,8 @@ function menu_openmedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         set(handles.toggle_playpause,'String','Play','Enable','on');
         set(handles.menu_closemedia,'Enable','on');
+        set(handles.axis_X,'XLim',[0,handles.dur],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
+        set(handles.axis_Y,'XLim',[0,handles.dur],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
     catch err
         msgbox(err.message,'Error loading media file.','error'); return;
     end
@@ -269,7 +282,7 @@ end
 
 function menu_about_Callback(~,~)
     global version;
-    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2016\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2017\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
 end
 
 % ===============================================================================
@@ -768,19 +781,11 @@ end
 
 % ===============================================================================
 
-function figure_review_SizeChanged(hObject,~)
+function figure_review_Resize(hObject,~)
     handles = guidata(hObject);
-    if isfield(handles,'figure_review')
-        pos = getpixelposition(handles.figure_review);
-        % Force to remain above a minimum size
-        if pos(3) < 1024 || pos(4) < 600
-            setpixelposition(handles.figure_review,[pos(1) pos(2) 1024 600]);
-            movegui(handles.figure_review,'center');
-        end
+    if isfield(handles,'figure_review') && isfield(handles,'vlc')
         % Update the size and position of the VLC controller
-        if isfield(handles,'vlc')
-            move(handles.vlc,getpixelposition(handles.axis_guide));
-        end
+        move(handles.vlc,getpixelposition(handles.axis_guide));
     end
 end
 
