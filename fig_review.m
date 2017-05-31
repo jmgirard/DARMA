@@ -61,6 +61,7 @@ function fig_review
     % Set minimum size
     set(handles.figure_review,'Units','normalized','Position',[0.1,0.1,0.8,0.8],'Visible','on');
     drawnow;
+    warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
     jFig = get(handle(handles.figure_review),'JavaFrame');
     jClient = jFig.fHG2Client;
     jWindow = jClient.getWindow;
@@ -74,7 +75,7 @@ function fig_review
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .24 .86 .16], ...
         'YLim',[-100,100],'YTick',linspace(-100,100,5),'YTickLabel',[],'YGrid','on', ...
-        'XLim',[0,11],'XTick',(1:10),'Box','on', ...
+        'XLim',[0,10],'XTick',(0:10),'Box','on', ...
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'X'});
     ylabel('X Axis','FontSize',10);
@@ -87,7 +88,7 @@ function fig_review
         'OuterPosition',[0 0 1 1], ...
         'Position',[lc+.01 .04 .86 .16], ...
         'YLim',[-100,100],'YTick',linspace(-100,100,5),'YTickLabel',[],'YGrid','on', ...
-        'XLim',[0,11],'XTick',(1:10),'Box','on', ...
+        'XLim',[0,10],'XTick',(0:10),'Box','on', ...
         'PickableParts','none', ...
         'ButtonDownFcn',{@axis_click_Callback,'Y'});
     ylabel('Y Axis','FontSize',10);
@@ -211,8 +212,8 @@ function menu_openmedia_Callback(hObject,~)
         handles.dur = handles.vlc.input.length / 1000;
         set(handles.toggle_playpause,'String','Play','Enable','on');
         set(handles.menu_closemedia,'Enable','on');
-        set(handles.axis_X,'XLim',[0,handles.dur],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
-        set(handles.axis_Y,'XLim',[0,handles.dur],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
+        set(handles.axis_X,'XLim',[0,ceil(handles.dur)],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
+        set(handles.axis_Y,'XLim',[0,ceil(handles.dur)],'XTick',round(linspace(0,handles.dur,11)),'PickableParts','Visible');
     catch err
         msgbox(err.message,'Error loading media file.','error'); return;
     end
@@ -732,7 +733,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'X'});
         hold on;
         ylim([-1*handles.mag,handles.mag]);
-        xlim([0,ceil(max(handles.Seconds))+1]);
+        xlim([0,ceil(max(handles.Seconds))]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on','TickLength',[0.005 0]);
         ylabel(handles.labelX,'FontSize',10);
         set(handles.axis_X,'ButtonDownFcn',{@axis_click_Callback,'X'});
@@ -743,7 +744,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'ButtonDownFcn',{@axis_click_Callback,'Y'});
         hold on;
         ylim([-1*handles.mag,handles.mag]);
-        xlim([0,ceil(max(handles.Seconds))+1]);
+        xlim([0,ceil(max(handles.Seconds))]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on','TickLength',[0.005 0]);
         ylabel(handles.labelY,'FontSize',10);
         set(handles.axis_Y,'ButtonDownFcn',{@axis_click_Callback,'Y'});
@@ -758,7 +759,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.AllRatingsX,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'X'});
         plot(handles.Seconds,handles.MeanRatingsX,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'X'});
         ylim([-1*handles.mag,handles.mag]);
-        xlim([0,ceil(max(handles.Seconds))+1]);
+        xlim([0,ceil(max(handles.Seconds))]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(handles.labelX,'FontSize',10);
         ts_X = plot(handles.axis_X,[0,0],[handles.mag,-1*handles.mag],'k');
@@ -770,7 +771,7 @@ function update_plots(handles)
         plot(handles.Seconds,handles.AllRatingsY,'-','LineWidth',2,'Color',[.8 .8 .8],'ButtonDownFcn',{@axis_click_Callback,'Y'});
         plot(handles.Seconds,handles.MeanRatingsY,'-','LineWidth',2,'Color',[1 0 0],'ButtonDownFcn',{@axis_click_Callback,'Y'});
         ylim([-1*handles.mag,handles.mag]);
-        xlim([0,ceil(max(handles.Seconds))+1]);
+        xlim([0,ceil(max(handles.Seconds))]);
         set(gca,'YTick',linspace(-1*handles.mag,handles.mag,5),'YTickLabel',[],'YGrid','on');
         ylabel(handles.labelY,'FontSize',10);
         ts_Y = plot(handles.axis_Y,[0,0],[handles.mag,-1*handles.mag],'k');
