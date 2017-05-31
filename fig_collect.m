@@ -125,8 +125,9 @@ function fig_collect
     try
         handles.joy = vrjoystick(1);
     catch
-        e = errordlg('DARMA could not detect a joystick.','Error','modal');
+        e = errordlg(sprintf('DARMA could not detect a USB joystick.\nPlease plug in a USB joystick and try again.'),'Error','modal');
         waitfor(e);
+        close force;
         return;
     end
     % Create timer
