@@ -15,7 +15,7 @@ DARMA was first published by Jeffrey Girard in 2014 under the GNU General Public
 ## Citation
 Users must agree to cite the [following article](https://osf.io/xhmu6/) in all publications making use of DARMA:
 
-Girard, J. M., & Wright, A. G. C. (in press). DARMA: Dual Axis Rating and Media Annotation. *Behavior Research Methods*. doi: 10.3758/s13428-017-0915-5
+Girard, J. M., & Wright, A. G. C. (in press). DARMA: Software for dual axis rating and media annotation. *Behavior Research Methods*. doi: 10.3758/s13428-017-0915-5
 
 ```
 @article{DARMA,
