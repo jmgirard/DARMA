@@ -522,7 +522,7 @@ function menu_srate_Callback(hObject,~)
         'Units','Normalized', ...
         'Position',[.10 .50 .80 .40], ...
         'String','DARMA can sample the joystick at different frequencies. Higher sampling rates provide more data redundancy but also impose a larger computational load. A sampling rate of 20 or 30 Hz is recommended for modern computers and 10 Hz is recommended for older or slower computers. Select a sampling rate below:');
-    popup_bin = uicontrol(d, ...
+    popup_srate = uicontrol(d, ...
         'Style','popup', ...
         'Units','Normalized', ...
         'Position',[.10 .35 .80 .20], ...
@@ -543,12 +543,11 @@ function menu_srate_Callback(hObject,~)
     stop(handles.timer);
     uiwait(d);
     handles.settings = settings;
-    set(handles.timer,'Period',round(1/settings.sratenum,3));
     guidata(handles.figure_collect,handles);
     start(handles.timer);
     function push_save_Callback(~,~)
-        srateval = popup_bin.Value;
-        sratenum = popup_bin.String{binsizeval};
+        srateval = popup_srate.Value;
+        sratenum = popup_srate.String{binsizeval};
         sratenum = str2double(sratenum(1,1:2));
         settings.srateval = srateval;
         settings.sratenum = sratenum;
@@ -557,16 +556,22 @@ function menu_srate_Callback(hObject,~)
         else
             save('default.mat','settings');
         end
+        if handles.timer.Running, stop(handles.timer); end
+        set(handles.timer,'Period',round(1/settings.sratenum,3));
+        if ~handles.timer.Running, start(handles.timer); end
         delete(d);
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
     function push_apply_Callback(~,~)
-        srateval = popup_bin.Value;
-        sratenum = popup_bin.String{srateval};
+        srateval = popup_srate.Value;
+        sratenum = popup_srate.String{srateval};
         sratenum = str2double(sratenum(1,1:2));
         settings.srateval = srateval;
         settings.sratenum = sratenum;
         delete(d);
+        if handles.timer.Running, stop(handles.timer); end
+        set(handles.timer,'Period',round(1/settings.sratenum,3));
+        if ~handles.timer.Running, start(handles.timer); end
         msgbox(sprintf('Applied the current settings for the current session.\nNext time DARMA is opened, these settings will be lost.'));
     end
 end
@@ -584,7 +589,7 @@ function menu_binsize_Callback(hObject,~)
         'Units','Normalized', ...
         'Position',[.10 .50 .80 .40], ...
         'String','DARMA samples the joystick at 10, 20, or 30 Hz. Samples are then averaged into temporal bins which are output in an annotation file. Bin size determines how long each bin is and thus how many samples contribute to it. Select a bin size below:');
-    popup_bin = uicontrol(d, ...
+    popup_bsize = uicontrol(d, ...
         'Style','popup', ...
         'Units','Normalized', ...
         'Position',[.10 .35 .80 .20], ...
@@ -608,26 +613,26 @@ function menu_binsize_Callback(hObject,~)
     guidata(handles.figure_collect,handles);
     start(handles.timer);
     function push_save_Callback(~,~)
-        binsizeval = popup_bin.Value;
-        binsizenum = popup_bin.String{binsizeval};
+        binsizeval = popup_bsize.Value;
+        binsizenum = popup_bsize.String{binsizeval};
         binsizenum = str2double(binsizenum(1,1:4));
         settings.binsizeval = binsizeval;
         settings.binsizenum = binsizenum;
+        delete(d);
         if isdeployed
             save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
         else
             save('default.mat','settings');
         end
-        delete(d);
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
     function push_apply_Callback(~,~)
-        binsizeval = popup_bin.Value;
-        binsizenum = popup_bin.String{binsizeval};
+        binsizeval = popup_bsize.Value;
+        binsizenum = popup_bsize.String{binsizeval};
+        delete(d);
         binsizenum = str2double(binsizenum(1,1:4));
         settings.binsizeval = binsizeval;
         settings.binsizenum = binsizenum;
-        delete(d);
         msgbox(sprintf('Applied the current settings for the current session.\nNext time DARMA is opened, these settings will be lost.'));
     end
 end
@@ -847,8 +852,8 @@ function figure_collect_Resize(hObject,~)
     handles = guidata(hObject);
     if isfield(handles,'figure_collect')
         % Force to remain above a minimum size
-            set(handles.toggle_playpause,'FontSize',14);
-            set(handles.table_info,'ColumnName',{'Bin Size','Axis Magnitude'});
+        set(handles.toggle_playpause,'FontSize',14);
+        set(handles.table_info,'ColumnName',{'Bin Size','Axis Magnitude'});
         % Update the size and position of the VLC controller
         if isfield(handles,'vlc')
             move(handles.vlc,getpixelposition(handles.axis_guide));
