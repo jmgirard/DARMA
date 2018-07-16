@@ -15,15 +15,18 @@ DARMA was first published by [Jeffrey Girard](http://jmgirard.com) in 2014 under
 ## Citation
 Users must agree to cite the [following article](https://osf.io/xhmu6/) in all publications making use of DARMA:
 
-Girard, J. M., & Wright, A. G. C. (in press). DARMA: Software for dual axis rating and media annotation. *Behavior Research Methods*. doi: [10.3758/s13428-017-0915-5](http://doi.org/10.3758/s13428-017-0915-5)
+Girard, J. M., & Wright, A. G. C. (2018). DARMA: Software for dual axis rating and media annotation. *Behavior Research Methods, 50*(3), 902-909. doi: [10.3758/s13428-017-0915-5](http://doi.org/10.3758/s13428-017-0915-5)
 
 ```
-@article{DARMA,
+@article{Girard2018,
+title = {{DARMA: Software for Dual Axis Rating and Media Annotation}},
 author = {Girard, Jeffrey M and Wright, Aidan G C},
 journal = {Behavior Research Methods},
-title = {DARMA: Software for Dual Axis Rating and Media Annotation},
-year = {in press},
-doi = {10.3758/s13428-017-0915-5}
+year = {2018},
+volume = {50},
+number = {3},
+pages = {902--909},
+doi = {https://doi.org/10.3758/s13428-017-0915-5}
 }
 ```
 
