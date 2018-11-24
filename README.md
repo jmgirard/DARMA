@@ -41,6 +41,6 @@ year = {2018}
 ```
 
 ## Papers Using DARMA
-* Hopwood, C. J., Harrison, A. L., Amole, M., Girard, J. M., C., A. G., Thomas, K. M., … Kashy, D. A. (2018). Properties of the continuous assessment of interpersonal dynamics across sex, level of familiarity, and interpersonal conflict. *Assessment*. <https://doi.org/10.1177/1073191118798916>
+* Hopwood, C. J., Harrison, A. L., Amole, M. C., Girard, J. M., Wright, A. G. C., Thomas, K. M., … Kashy, D. A. (2018). Properties of the continuous assessment of interpersonal dynamics across sex, level of familiarity, and interpersonal conflict. *Assessment*. <https://doi.org/10.1177/1073191118798916>
 
 * Ross, J. M., Girard, J. M., Wright, A. G. C., Beeney, J. E., Scott, L. N., Hallquist, M. N., … Pilkonis, P. A. (2017). Momentary patterns of covariation between specific affects and interpersonal behavior: Linking relationship science and personality assessment. *Psychological Assessment*, 29(2), 123–134. <http://doi.org/10.1037/pas0000338>
