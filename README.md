@@ -19,21 +19,25 @@ DARMA is a media annotation program that collects continuous ratings while displ
 </table>
 
 ## History
-DARMA was first published by Jeffrey Girard in 2014 under the GNU General Public License version 3 (GPUv3). Users are free to use, distribute, and modify the program as outlined in the license. DARMA is meant to be a modernization of Sadler's JoyMon and Cowie's FeelTRACE, and was first adapted from Girard's CARMA. A journal publication describing DARMA and its use was published in 2017.
+DARMA was first published by Jeffrey Girard in 2014 under the GNU General Public License version 3 (GPUv3). Users are free to use, distribute, and modify the program as outlined in the license. DARMA is meant to be a modernization of Sadler's JoyMon and Cowie's FeelTRACE, and was first adapted from Girard's CARMA. A journal publication describing DARMA and its use was published in 2018.
 
 ## Citation
 Users must agree to cite the [following article](https://osf.io/xhmu6/) in all publications making use of DARMA:
 
-Girard, J. M., & Wright, A. G. C. (in press). DARMA: Dual Axis Rating and Media Annotation. *Behavior Research Methods*. doi: 10.3758/s13428-017-0915-5
+Girard, J. M., & Wright, A. G. C. (2018). DARMA: Software for Dual Axis Rating and Media Annotation. *Behavior Research Methods, 50*(3), 902–909. <https://doi.org/https://doi.org/10.3758/s13428-017-0915-5>
 
 ```
 @article{DARMA,
 author = {Girard, Jeffrey M and Wright, Aidan G C},
+doi = {https://doi.org/10.3758/s13428-017-0915-5},
 journal = {Behavior Research Methods},
+number = {3},
+pages = {902--909},
 title = {{DARMA: Software for Dual Axis Rating and Media Annotation}},
-year = {in press},
-doi = {10.3758/s13428-017-0915-5}
+volume = {50},
+year = {2018}
 }
+
 ```
 
 ## Papers Using DARMA
