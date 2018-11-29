@@ -10,7 +10,7 @@ DARMA is a media annotation program that collects continuous ratings while displ
 </table>
 
 ## History
-DARMA was first published by [Jeffrey Girard](http://jmgirard.com) in 2014 under the GNU General Public License version 3 (GPUv3). Users are free to use, distribute, and modify the program as outlined in the license. DARMA is meant to be a modernization of Sadler's JoyMon and Cowie's FeelTRACE, and was first adapted from Girard's [CARMA](http://carma.jmgirard.com). A journal publication describing DARMA and its use was published in 2017.
+DARMA was first published by [Jeffrey Girard](http://jmgirard.com) in 2014 under the GNU General Public License version 3 (GPUv3). Users are free to use, distribute, and modify the program as outlined in the license. DARMA is meant to be a modernization of Sadler's JoyMon and Cowie's FeelTRACE, and was first adapted from Girard's [CARMA](http://carma.jmgirard.com). A journal publication describing DARMA and its use was published in 2018.
 
 ## Citation
 Users must agree to cite the [following article](https://osf.io/xhmu6/) in all publications making use of DARMA:
