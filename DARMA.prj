@@ -1,6 +1,6 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
   <configuration file="D:\GitHub\DARMA\DARMA.prj" location="D:\GitHub\DARMA" name="DARMA" target="target.ezdeploy.standalone" target-name="Application Compiler">
-    <param.appname>fig_launcher</param.appname>
+    <param.appname>DARMA</param.appname>
     <param.icon />
     <param.icons />
     <param.version>6.04</param.version>
@@ -11,7 +11,7 @@
     <param.description>DARMA allows users to play multimedia files while collecting continuous ratings in a two-dimensional space using a computer joystick. Please see the following website for updates, documentation, and a copy of the license: https://darma.jmgirard.com</param.description>
     <param.screenshot />
     <param.guid />
-    <param.installpath.string>\fig_launcher\</param.installpath.string>
+    <param.installpath.string>\DARMA\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
     <param.install.notes />
@@ -92,8 +92,8 @@
     <fileset.package />
     <fileset.depfun />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="fig_launcher.exe" optional="false">D:\GitHub\DARMA\DARMA\for_testing\fig_launcher.exe</file>
       <file location="${PROJECT_ROOT}\DARMA\for_testing" name="splash.png" optional="false">D:\GitHub\DARMA\DARMA\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="DARMA.exe" optional="false">D:\GitHub\DARMA\DARMA\for_testing\DARMA.exe</file>
       <file location="${PROJECT_ROOT}\DARMA\for_testing" name="readme.txt" optional="true">D:\GitHub\DARMA\DARMA\for_testing\readme.txt</file>
     </build-deliverables>
     <workflow />
