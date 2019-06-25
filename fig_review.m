@@ -1,7 +1,13 @@
 function fig_review
 %FIG_REVIEW Window for the review of existing ratings
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
-
+    
+    % Get default settings
+    if isdeployed
+        handles.settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
+    else
+        handles.settings = importdata('default.mat');
+    end
     % Create and maximize annotation window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_review = figure( ...
@@ -252,29 +258,30 @@ function menu_export_Callback(hObject,~)
         %TODO: Pull this information from the annotation file
         name = ''; ext = '';
         defaultname = 'Mean';
+        dur = '';
     else
         [~,name,ext] = fileparts(handles.MRL);
         defaultname = sprintf('%s_Mean',name);
+        dur = handles.dur;
     end
     output = [ ...
         {'Time of Rating'},{datestr(now)},{''},{''}; ...
-        {'Media File'},{sprintf('%s%s',name,ext)},{''},{''}; ...
+        {'Media File'},{sprintf('%s%s',name,ext)},{dur},{''}; ...
         {'Magnitude'},{handles.mag},{''},{''}; ...
         {'Second'},{handles.labelX},{handles.labelY},{'B'}; ...
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
     %Prompt user for output filepath
-    [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',defaultname);
+    [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,defaultname));
     if isequal(filename,0), return; end
-    % Create export file as a CSV
-    success = cell2csv(fullfile(pathname,filename),output);
-    % Report saving success or failure
-    if success
-        h = msgbox('Export successful.');
-        waitfor(h);
-    else
-        h = msgbox('Export error.');
-        waitfor(h);
+    % Create export file
+    try
+        writecell(output,fullfile(pathname,filename), ...
+            'FileType','text','Delimiter','comma', ...
+            'QuoteStrings',true,'Encoding','UTF-8');
+        msgbox('Export successful.','Success');
+    catch err
+        errordlg(err.message,'Error saving');
     end
 end
 
@@ -282,7 +289,7 @@ end
 
 function menu_about_Callback(~,~)
     global version;
-    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2017\nhttp://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2019\nhttps://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
 end
 
 % ===============================================================================

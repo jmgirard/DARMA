@@ -814,13 +814,15 @@ function timer_Callback(~,~,handles)
                 {'Second'},{handles.settings.labelX},{handles.settings.labelY},{'Button'}; ...
                 {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
                 num2cell(mean_ratings)];
-            % Create export file depending on selected file type
-            try
-                writecell(output,fullfile(pathname,filename));
-                msgbox('Export successful.','Success');
-            catch err
-                errordlg(err.message,'Error saving');
-            end
+        % Create export file
+        try
+            writecell(output,fullfile(pathname,filename), ...
+                'FileType','text','Delimiter','comma', ...
+                'QuoteStrings',true,'Encoding','UTF-8');
+            msgbox('Export successful.','Success');
+        catch err
+            errordlg(err.message,'Error saving');
+        end
         end
         program_reset(handles);
     % While transitioning or paused
