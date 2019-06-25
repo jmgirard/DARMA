@@ -314,28 +314,11 @@ function addseries_Callback(hObject,~)
     w = waitbar(0,'Importing annotation files...');
     for f = 1:length(filenames)
         filename = filenames{f};
-        [~,~,ext] = fileparts(filename);
-        if strcmp(ext,'.csv')
-            fileID = fopen(fullfile(pathname,filename),'r');
-            magcell = textscan(fileID,'%*s%f%*s%*s%[^\n\r]',1,'Delimiter',',', 'HeaderLines',2,'ReturnOnError',false);
-            mag = magcell{1};
-            fclose(fileID);
-            fileID = fopen(fullfile(pathname,filename),'r');
-            labels = textscan(fileID,'%*s%s%s%*s%[^\n\r]',1, 'Delimiter',',','HeaderLines',3,'ReturnOnError',false);
-            labelX = labels{1}{1};
-            labelY = labels{2}{1};
-            fclose(fileID);
-            fileID = fopen(fullfile(pathname,filename),'r');
-            datacell = textscan(fileID,'%f%f%f%f%[^\n\r]','Delimiter',',','HeaderLines',5,'ReturnOnError',false);
-            data = [datacell{:,1},datacell{:,2},datacell{:,3}];
-            fclose(fileID);
-        else
-            [nums,txts] = xlsread(fullfile(pathname,filename),'','','basic');
-            mag = nums(3,2);
-            labelX = txts{4,2};
-            labelY = txts{4,3};
-            data = nums(6:end,1:3);
-        end
+        raw = readcell(fullfile(pathname,filename));
+        mag = raw{3,2};
+        labelX = raw{4,2};
+        labelY = raw{4,3};
+        data = cell2mat(raw(6:end,1:3));
         % Get settings from import file    
         if isempty(handles.mag)
             handles.mag = mag;
