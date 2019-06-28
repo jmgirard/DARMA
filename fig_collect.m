@@ -877,6 +877,7 @@ function figure_collect_Resize(hObject,~)
         if isfield(handles,'vlc')
             move(handles.vlc,getpixelposition(handles.axis_guide));
         end
+        pos = getpixelposition(handles.figure_collect);
         set(handles.table_info,'ColumnWidth',num2cell(repmat(round(pos(3)*.22 / 2 - 2),1,2)));
     end
 end
