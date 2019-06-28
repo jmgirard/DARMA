@@ -133,10 +133,11 @@ function fig_collect
     try
         handles.joy = vrjoystick(1);
     catch
-        e = errordlg(sprintf('DARMA could not detect a USB joystick.\nPlease plug in a USB joystick and try again.'),'Error','modal');
+        e = errordlg(sprintf('DARMA could not detect a USB joystick.\nPlease plug in a USB joystick and restart DARMA. Until then, you will be able to view the Collect Window but not collect ratings.'),'Error','modal');
+        set(handles.toggle_playpause,'Enable','off');
         waitfor(e);
-        close force;
-        return;
+        %close force;
+        %return;
     end
     % Create timer
     handles.recording = 0;
