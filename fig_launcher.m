@@ -3,7 +3,7 @@ function fig_launcher
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     global version;
-    version = 6.04;
+    version = 6.05;
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_launcher = figure( ...
@@ -79,7 +79,7 @@ function website(~,~)
     choice = questdlg('Open DARMA website in browser?','DARMA','Yes','No','Yes');
     switch choice
         case 'Yes'
-            web('http://darma.jmgirard.com/','-browser');
+            web('https://darma.jmgirard.com/','-browser');
         otherwise
             return;
     end
