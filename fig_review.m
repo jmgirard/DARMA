@@ -610,8 +610,8 @@ function axis_click_Callback(hObject,~,axis)
         % if clicked on a valid position, go to that position
         handles.vlc.input.time = coord(1,1)*1000;
     else
-        % if clicked on an invalid position, go to video start
-        handles.vlc.input.time = 0;
+        % if clicked on an invalid position, go to video max
+        handles.vlc.input.time = duration;
     end
     pause(.05);
     % While playing, update annotations plot
