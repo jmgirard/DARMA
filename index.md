@@ -31,5 +31,8 @@ doi = {https://doi.org/10.3758/s13428-017-0915-5}
 ```
 
 ## Papers Using DARMA
+* Lourties, S., Léger, P.-M., Sénécal, S., Fredette, M., & Chen, S. L. (2018). Testing the convergent validity of continuous self-perceived measurement systems: An exploratory study. *Proceedings of the International Conference on HCI in Business, Government, and Organizations*, 132–144. <https://doi.org/10/gf7p7p>
+
 * Hopwood, C. J., Harrison, A. L., Amole, M. C., Girard, J. M., Wright, A. G. C., Thomas, K. M., … Kashy, D. A. (in press). Properties of the continuous assessment of interpersonal dynamics across sex, level of familiarity, and interpersonal conflict. *Assessment*. <http://psyarxiv.com/hqpt7/>
+
 * Ross, J. M., Girard, J. M., Wright, A. G. C., Beeney, J. E., Scott, L. N., Hallquist, M. N., … Pilkonis, P. A. (2017). Momentary patterns of covariation between specific affects and interpersonal behavior: Linking relationship science and personality assessment. *Psychological Assessment, 29*(2), 123–134. <http://doi.org/10.1037/pas0000338>
