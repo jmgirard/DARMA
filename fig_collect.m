@@ -185,6 +185,7 @@ function menu_openmedia_Callback(hObject,~)
         handles.vlc.playlist.togglePause();
         handles.vlc.input.time = 0;
         handles.dur = handles.vlc.input.length / 1000;
+        handles.vlc.audio.volume = 100;
         if handles.dur == 0
             handles.vlc.playlist.items.clear();
             error('Could not read duration of media file. The file meta-data may be damaged. Transcoding the streams (e.g., with HandBrake) may fix this problem.');
