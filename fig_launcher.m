@@ -3,7 +3,7 @@ function fig_launcher
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     global version;
-    version = 6.05;
+    version = 6.06;
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_launcher = figure( ...
