@@ -3,7 +3,7 @@
     <param.appname>DARMA</param.appname>
     <param.icon />
     <param.icons />
-    <param.version>6.06</param.version>
+    <param.version>6.07</param.version>
     <param.authnamewatermark>Jeffrey M. Girard</param.authnamewatermark>
     <param.email>me@jmgirard.com</param.email>
     <param.company />
@@ -77,7 +77,6 @@
       <file>${PROJECT_ROOT}\fig_launcher.m</file>
     </fileset.main>
     <fileset.resources>
-      <file>${PROJECT_ROOT}\default.mat</file>
       <file>${PROJECT_ROOT}\fig_analyze.m</file>
       <file>${PROJECT_ROOT}\fig_collect.m</file>
       <file>${PROJECT_ROOT}\fig_review.m</file>
