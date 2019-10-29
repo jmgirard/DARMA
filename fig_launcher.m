@@ -71,7 +71,7 @@ function fig_launcher
     end
     % Check for updates
     try
-        rss = urlread('https://github.com/jmgirard/DARMA/releases');
+        rss = webread('https://github.com/jmgirard/DARMA/releases');
         index = strfind(rss,'DARMA v');
         newest = str2double(rss(index(1)+7:index(1)+10));
         current = version;
