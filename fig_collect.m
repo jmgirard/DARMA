@@ -755,7 +755,7 @@ function timer_Callback(~,~,handles)
     if recording == 0
         [a,b,~] = read(handles.joy);
         x = a(1); y = a(2)*-1;
-        if b(1)==0, color = 'w'; else color = 'y'; end
+        if b(1)==0, color = 'w'; else, color = 'y'; end
         set(marker,'XData',x,'YData',y,'MarkerFace',color);
         return;
     end
@@ -780,7 +780,7 @@ function timer_Callback(~,~,handles)
             last_ts_sys = ts_sys;
         end
         x = a(1); y = a(2)*-1;
-        if b(1)==0, color = 'r'; else color = 'g'; end
+        if b(1)==0, color = 'r'; else, color = 'g'; end
         set(marker,'XData',x,'YData',y,'MarkerFace',color);
         ratings = [ratings; ts_vlc,x*handles.settings.magnum,y*handles.settings.magnum,b(1)];
         set(handles.text_timestamp,'String',datestr(handles.vlc.input.time/1000/24/3600,'HH:MM:SS'));
