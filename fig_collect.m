@@ -497,7 +497,11 @@ function menu_magnitude_Callback(hObject,~)
         setpref('darma', ...
             {'magval','magnum'}, ...
             {settings.magval,settings.magnum});
+        handles.table_info.Data = ...
+            {settings.binsizenum,settings.magnum};
+        guidata(handles.figure_collect,handles);
         delete(d);
+        drawnow();
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
     function push_apply_Callback(~,~)
@@ -506,7 +510,11 @@ function menu_magnitude_Callback(hObject,~)
         magnum = str2double(magnum);
         settings.magval = magval;
         settings.magnum = magnum;
+        handles.table_info.Data = ...
+            {settings.binsizenum,settings.magnum};
+        guidata(handles.figure_collect,handles);
         delete(d);
+        drawnow();
         msgbox(sprintf('Applied the current settings for the current session.\nNext time DARMA is opened, these settings will be lost.'));
     end
 end
@@ -618,7 +626,11 @@ function menu_binsize_Callback(hObject,~)
         binsizenum = str2double(binsizenum(1,1:4));
         settings.binsizeval = binsizeval;
         settings.binsizenum = binsizenum;
+        handles.table_info.Data = ...
+            {settings.binsizenum,settings.magnum};
+        guidata(handles.figure_collect,handles);
         delete(d);
+        drawnow();
         setpref('darma', ...
             {'binsizeval','binsizenum'}, ...
             {settings.binsizeval,settings.binsizenum});
@@ -627,10 +639,14 @@ function menu_binsize_Callback(hObject,~)
     function push_apply_Callback(~,~)
         binsizeval = popup_bsize.Value;
         binsizenum = popup_bsize.String{binsizeval};
-        delete(d);
         binsizenum = str2double(binsizenum(1,1:4));
         settings.binsizeval = binsizeval;
         settings.binsizenum = binsizenum;
+        handles.table_info.Data = ...
+            {settings.binsizenum,settings.magnum};
+        guidata(handles.figure_collect,handles);
+        delete(d);
+        drawnow();
         msgbox(sprintf('Applied the current settings for the current session.\nNext time DARMA is opened, these settings will be lost.'));
     end
 end
