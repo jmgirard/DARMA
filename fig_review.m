@@ -3,11 +3,7 @@ function fig_review
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
     
     % Get default settings
-    if isdeployed
-        handles.settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
-    else
-        handles.settings = importdata('default.mat');
-    end
+    handles.settings = getpref('darma');
     % Create and maximize annotation window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_review = figure( ...

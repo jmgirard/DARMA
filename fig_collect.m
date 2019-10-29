@@ -3,11 +3,7 @@ function fig_collect
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     % Get default settings
-    if isdeployed
-        handles.settings = importdata(fullfile(ctfroot,'DARMA','default.mat'));
-    else
-        handles.settings = importdata('default.mat');
-    end
+    handles.settings = getpref('darma');
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
     handles.figure_collect = figure( ...
@@ -430,11 +426,13 @@ function menu_axislabels_Callback(hObject,~)
         settings.label6 = get(edit_label6,'string');
         settings.label7 = get(edit_label7,'string');
         settings.label8 = get(edit_label8,'string');
-        if isdeployed
-            save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
-        else
-            save('default.mat','settings');
-        end
+        setpref('darma', ...
+            {'labelX','labelY','label1','label2','label3','label4', ...
+            'label5','label6','label7','label8'}, ...
+            {settings.labelX, settings.labelY, settings.label1, ...
+            settings.label2, settings.label3, settings.label4, ...
+            settings.label5, settings.label6, settings.label7, ...
+            settings.label8});
         delete(d);
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
@@ -496,11 +494,9 @@ function menu_magnitude_Callback(hObject,~)
         magnum = str2double(magnum);
         settings.magval = magval;
         settings.magnum = magnum;
-        if isdeployed
-            save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
-        else
-            save('default.mat','settings');
-        end
+        setpref('darma', ...
+            {'magval','magnum'}, ...
+            {settings.magval,settings.magnum});
         delete(d);
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
@@ -557,11 +553,9 @@ function menu_srate_Callback(hObject,~)
         sratenum = str2double(sratenum(1,1:2));
         settings.srateval = srateval;
         settings.sratenum = sratenum;
-        if isdeployed
-            save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
-        else
-            save('default.mat','settings');
-        end
+        setpref('darma', ...
+            {'srateval','sratenum'}, ...
+            {settings.srateval,settings.sratenum});
         if handles.timer.Running, stop(handles.timer); end
         set(handles.timer,'Period',round(1/settings.sratenum,3));
         if ~handles.timer.Running, start(handles.timer); end
@@ -625,11 +619,9 @@ function menu_binsize_Callback(hObject,~)
         settings.binsizeval = binsizeval;
         settings.binsizenum = binsizenum;
         delete(d);
-        if isdeployed
-            save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
-        else
-            save('default.mat','settings');
-        end
+        setpref('darma', ...
+            {'binsizeval','binsizenum'}, ...
+            {settings.binsizeval,settings.binsizenum});
         msgbox(sprintf('Saved the current settings as the default settings.\nNext time DARMA is opened, these settings will be used.'));
     end
     function push_apply_Callback(~,~)
@@ -651,11 +643,9 @@ function menu_defaultdir_Callback(hObject,~)
     path = uigetdir(settings.defaultdir,'Select a new default folder:');
     if isequal(path,0), return; end
     settings.defaultdir = path;
-    if isdeployed
-        save(fullfile(ctfroot,'DARMA','default.mat'),'settings');
-    else
-        save('default.mat','settings');
-    end
+    setpref('darma', ...
+        {'defaultdir'}, ...
+        {settings.defaultdir});
     handles.settings = settings;
     guidata(handles.figure_collect,handles);
 end
