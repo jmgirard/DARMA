@@ -682,8 +682,8 @@ end
 % ===============================================================================
 
 function menu_about_Callback(~,~)
-    global version;
-    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-2019\nhttps://darma.jmgirard.com\nGNU General Public License v3',version),'About','Help');
+    global version year;
+    msgbox(sprintf('DARMA version %.2f\nJeffrey M Girard (c) 2014-%d\nhttps://darma.jmgirard.com\nGNU General Public License v3',version,year),'About','Help');
 end
 
 % ===============================================================================
