@@ -3,7 +3,7 @@ function fig_launcher
 % License: https://github.com/jmgirard/DARMA/blob/master/LICENSE.txt
 
     global version year;
-    version = 6.07;
+    version = 6.08;
     year = 2019;
     % Create and center main window
     defaultBackground = get(0,'defaultUicontrolBackgroundColor');
