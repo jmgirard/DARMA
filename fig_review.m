@@ -39,6 +39,9 @@ function fig_review
         'Label','Export Mean Series to New File', ...
         'Enable','off', ...
         'Callback',@menu_export_Callback);
+    handles.menu_combine = uimenu(handles.menu_annotations, ...
+        'Label','Combine Multiple Annotation Files', ...
+        'Callback',@menu_combine_Callback);
     handles.menu_analyze = uimenu(handles.figure_review, ...
         'Label','Analyze');
     handles.menu_analyzeratings = uimenu(handles.menu_analyze, ...
@@ -352,6 +355,46 @@ function menu_savefig_Callback(hObject,~,type)
 end
 
 % ===============================================================================
+
+function menu_combine_Callback(hObject,~)
+    handles = guidata(hObject);
+    % Ask user to select files
+    [filenames,pathname] = uigetfile({'*.csv;*.xlsx;*.xls','DARMA Annotations (*.csv, *.xlsx, *.xls)'},'Open Annotations','','MultiSelect','on');
+    if ~iscell(filenames)
+        if filenames==0, return; end
+        filenames = {filenames};
+    end
+    % Loop through files, reading them and adding them to output cell
+    out = cell(1, 9);
+    out(1,:) = [{'AnnotationFile'}, {'MultimediaFile'}, {'Magnitude'}, {'XLabel'}, {'YLabel'}, {'Second'}, {'X'}, {'Y'}, {'Button'}];
+    w = waitbar(0,'Importing annotation files...');
+    for f = 1:length(filenames)
+        filename = filenames{f};
+        raw = readcell(fullfile(pathname,filename));
+        data = raw(6:end,1:4);
+        append = cell(size(data, 1), 9);
+        append(1:end,1) = cellstr(filename);
+        append(1:end,2) = raw(2,2);
+        append(1:end,3) = raw(3,2);
+        append(1:end,4) = raw(4,2);
+        append(1:end,5) = raw(4,3);
+        append(1:end,6:9) = data;
+        out = [out; append];
+        waitbar(f/length(filenames),w);
+    end
+    %Prompt user for output filepath
+    [outfile,outpath] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,'Combined.csv'));
+    if isequal(outfile,0), return; end
+    try
+        writecell(out,fullfile(outpath,outfile), ...
+            'FileType','text','Delimiter','comma', ...
+            'QuoteStrings',true,'Encoding','UTF-8');
+        msgbox('Export successful.','Success');
+    catch err
+        errordlg(err.message,'Error saving');
+    end
+    delete(w);
+end
 
 function menu_about_Callback(~,~)
     global version year;
