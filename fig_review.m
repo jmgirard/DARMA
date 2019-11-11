@@ -322,6 +322,7 @@ function menu_export_Callback(hObject,~)
         {'Second'},{handles.labelX},{handles.labelY},{'B'}; ...
         {'%%%%%%'},{'%%%%%%'},{'%%%%%%'},{'%%%%%%'}; ...
         num2cell([handles.Seconds,handles.MeanRatingsX,handles.MeanRatingsY,zeros(length(handles.Seconds),1)])];
+    output(cellfun(@(x) any(ismissing(x)), output)) = {''};
     %Prompt user for output filepath
     [filename,pathname] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,defaultname));
     if isequal(filename,0), return; end
@@ -382,6 +383,7 @@ function menu_combine_Callback(hObject,~)
         out = [out; append];
         waitbar(f/length(filenames),w);
     end
+    out(cellfun(@(x) any(ismissing(x)), out)) = {''};
     %Prompt user for output filepath
     [outfile,outpath] = uiputfile({'*.csv','Comma-Separated Values (*.csv)'},'Save as',fullfile(handles.settings.defaultdir,'Combined.csv'));
     if isequal(outfile,0), return; end
