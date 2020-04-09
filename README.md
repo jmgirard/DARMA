@@ -41,6 +41,8 @@ year = {2018}
 ```
 
 ## Papers Using DARMA
+* Maister, L., Hodossy, L., Tsakiris, M., & Shinskey, J. L. (in press). Self or (m)other? Infants' sensitivity to bodily overlap with their mother reflects their dyadic coordination. *Child Development*. <https://doi.org/10/ggrj2x>
+
 * Lourties, S., Léger, P.-M., Sénécal, S., Fredette, M., & Chen, S. L. (2018). Testing the convergent validity of continuous self-perceived measurement systems: An exploratory study. *Proceedings of the International Conference on HCI in Business, Government, and Organizations*, 132–144. <https://doi.org/10/gf7p7p>
 
 * Hopwood, C. J., Harrison, A. L., Amole, M. C., Girard, J. M., Wright, A. G. C., Thomas, K. M., … Kashy, D. A. (2018). Properties of the continuous assessment of interpersonal dynamics across sex, level of familiarity, and interpersonal conflict. *Assessment*. <https://doi.org/10.1177/1073191118798916>
