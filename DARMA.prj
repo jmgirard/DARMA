@@ -97,14 +97,10 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>D:\MATLAB</root>
+      <root>C:\Program Files\MATLAB\R2019b</root>
       <toolboxes>
         <toolbox name="matlabcoder" />
-        <toolbox name="embeddedcoder" />
         <toolbox name="gpucoder" />
-        <toolbox name="fixedpoint" />
-        <toolbox name="matlabhdlcoder" />
-        <toolbox name="neuralnetwork" />
       </toolboxes>
       <toolbox>
         <matlabcoder>
@@ -112,29 +108,9 @@
         </matlabcoder>
       </toolbox>
       <toolbox>
-        <embeddedcoder>
-          <enabled>true</enabled>
-        </embeddedcoder>
-      </toolbox>
-      <toolbox>
         <gpucoder>
           <enabled>true</enabled>
         </gpucoder>
-      </toolbox>
-      <toolbox>
-        <fixedpoint>
-          <enabled>true</enabled>
-        </fixedpoint>
-      </toolbox>
-      <toolbox>
-        <matlabhdlcoder>
-          <enabled>true</enabled>
-        </matlabhdlcoder>
-      </toolbox>
-      <toolbox>
-        <neuralnetwork>
-          <enabled>true</enabled>
-        </neuralnetwork>
       </toolbox>
     </matlab>
     <platform>
