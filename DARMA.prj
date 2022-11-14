@@ -1,9 +1,9 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="D:\GitHub\DARMA\DARMA.prj" location="D:\GitHub\DARMA" name="DARMA" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration file="C:\Users\j553g371\DARMA\DARMA.prj" location="C:\Users\j553g371\DARMA" name="DARMA" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>DARMA</param.appname>
     <param.icon />
     <param.icons />
-    <param.version>6.09</param.version>
+    <param.version>6.10</param.version>
     <param.authnamewatermark>Jeffrey M. Girard</param.authnamewatermark>
     <param.email>me@jmgirard.com</param.email>
     <param.company />
@@ -91,27 +91,14 @@
     <fileset.package />
     <fileset.depfun />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="splash.png" optional="false">D:\GitHub\DARMA\DARMA\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="DARMA.exe" optional="false">D:\GitHub\DARMA\DARMA\for_testing\DARMA.exe</file>
-      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="readme.txt" optional="true">D:\GitHub\DARMA\DARMA\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="readme.txt" optional="true">C:\Users\j553g371\DARMA\DARMA\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="splash.png" optional="false">C:\Users\j553g371\DARMA\DARMA\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\DARMA\for_testing" name="DARMA.exe" optional="false">C:\Users\j553g371\DARMA\DARMA\for_testing\DARMA.exe</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2019b</root>
-      <toolboxes>
-        <toolbox name="matlabcoder" />
-        <toolbox name="gpucoder" />
-      </toolboxes>
-      <toolbox>
-        <matlabcoder>
-          <enabled>true</enabled>
-        </matlabcoder>
-      </toolbox>
-      <toolbox>
-        <gpucoder>
-          <enabled>true</enabled>
-        </gpucoder>
-      </toolbox>
+      <root>C:\Program Files\MATLAB\R2022b</root>
+      <toolboxes />
     </matlab>
     <platform>
       <unix>false</unix>
